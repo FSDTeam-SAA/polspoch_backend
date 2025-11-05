@@ -1,0 +1,24 @@
+export interface IProduct {
+  productName: string;
+  description: string;
+  inStock: boolean;
+  image: {
+    public_id: string;
+    url: string;
+  }[];
+  longestSide: number[];
+  shortestSide: number[];
+  thickness: number[];
+  long: number[];
+  finish: string[];
+  quality: string[];
+  manufacturingProcess: string;
+  productInfo: {
+    title: string;
+    description: string;
+  }[];
+  technicalInfo: {
+    title: string;
+    description: string;
+  }[];
+}
