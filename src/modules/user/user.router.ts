@@ -40,11 +40,5 @@ router.put(
   userController.updateUserProfile
 );
 
-router.get(
-  "/admin_id",
-  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  userController.getAdminId
-);
-
 const userRouter = router;
 export default userRouter;

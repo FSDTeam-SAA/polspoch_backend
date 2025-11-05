@@ -1,16 +1,16 @@
-import { StatusCodes } from "http-status-codes";
-import AppError from "../../errors/AppError";
-import { IUser } from "./user.interface";
-import { User } from "./user.model";
 import bcrypt from "bcrypt";
-import sendEmail from "../../utils/sendEmail";
-import verificationCodeTemplate from "../../utils/verificationCodeTemplate";
-import { createToken } from "../../utils/tokenGenerate";
+import { StatusCodes } from "http-status-codes";
 import config from "../../config";
+import AppError from "../../errors/AppError";
 import {
   deleteFromCloudinary,
   uploadToCloudinary,
 } from "../../utils/cloudinary";
+import sendEmail from "../../utils/sendEmail";
+import { createToken } from "../../utils/tokenGenerate";
+import verificationCodeTemplate from "../../utils/verificationCodeTemplate";
+import { IUser } from "./user.interface";
+import { User } from "./user.model";
 
 const registerUser = async (payload: IUser) => {
   const existingUser = await User.isUserExistByEmail(payload.email);
@@ -95,11 +95,8 @@ const verifyEmail = async (email: string, payload: string) => {
   if (!existingUser)
     throw new AppError("User not found", StatusCodes.NOT_FOUND);
 
-  // if (!existingUser.otp || !existingUser.otpExpires) {
-  //   throw new AppError("OTP not requested or expired", StatusCodes.BAD_REQUEST);
-  // }
   if (!existingUser.otp || !existingUser.otpExpires) {
-    throw new AppError("OTP somoy sasee, abar denn", StatusCodes.BAD_REQUEST);
+    throw new AppError("OTP not requested or expired", StatusCodes.BAD_REQUEST);
   }
 
   if (existingUser.otpExpires < new Date()) {
@@ -155,19 +152,14 @@ const resendOtpCode = async (email: string) => {
 };
 
 const getAllUsers = async () => {
-  const result = await User.find().select(
+  const result = await User.find({ isVerified: true }).select(
     "username firstName lastName email role"
   );
   return result;
 };
 
-const getAdminId = async () => {
-  const admin = await User.findOne({ role: "admin" }).select("_id");
-  return admin;
-};
-
 const getMyProfile = async (email: string) => {
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ email, isVerified: true });
   if (!existingUser)
     throw new AppError("User not found", StatusCodes.NOT_FOUND);
 
@@ -179,7 +171,7 @@ const getMyProfile = async (email: string) => {
 };
 
 const updateUserProfile = async (payload: any, email: string, file: any) => {
-  const user = await User.findOne({ email }).select("image");
+  const user = await User.findOne({ email, isVerified: true }).select("image");
   if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
 
   // eslint-disable-next-line prefer-const
@@ -214,7 +206,6 @@ const userService = {
   getAllUsers,
   getMyProfile,
   updateUserProfile,
-  getAdminId,
 };
 
 export default userService;
