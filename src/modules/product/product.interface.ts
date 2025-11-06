@@ -2,7 +2,7 @@ export interface IProduct {
   productName: string;
   description: string;
   inStock: boolean;
-  image: {
+  images: {
     public_id: string;
     url: string;
   }[];
