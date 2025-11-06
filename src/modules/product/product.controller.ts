@@ -15,8 +15,20 @@ const addNewProduct = catchAsync(async (req, res) => {
   });
 });
 
+const getAllProducts = catchAsync(async (req, res) => {
+  const result = await productService.getAllProducts();
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Products fetched successfully",
+    data: result,
+  });
+});
+
 const productController = {
   addNewProduct,
+  getAllProducts,
 };
 
 export default productController;

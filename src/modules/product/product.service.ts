@@ -47,8 +47,15 @@ const addNewProduct = async (
   return result;
 };
 
+//! Pagination,searching,sorting and filtering is not completed.
+const getAllProducts = async () => {
+  const result = await Product.find({});
+  return result;
+};
+
 const productService = {
   addNewProduct,
+  getAllProducts,
 };
 
 export default productService;
