@@ -111,11 +111,22 @@ const updateProduct = async (
   return result;
 };
 
+
+//! i things there add some logic if any user order this product which one delete then add error message.
+const deleteProduct = async (productId: string) => {
+  const isExistingProduct = await Product.findById(productId);
+  if (!isExistingProduct)
+    throw new AppError("Product not found", StatusCodes.NOT_FOUND);
+
+  await Product.findByIdAndDelete(productId);
+};
+
 const productService = {
   addNewProduct,
   getAllProducts,
   getSingeProduct,
   updateProduct,
+  deleteProduct,
 };
 
 export default productService;
