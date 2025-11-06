@@ -11,6 +11,13 @@ router.post(
 );
 
 router.get("/all-products", productController.getAllProducts);
+router.get("/:productId", productController.getSingeProduct);
+
+router.put(
+  "/update-product/:productId",
+  upload.array("images", 10),
+  productController.updateProduct
+);
 
 const productRouter = router;
 export default productRouter;

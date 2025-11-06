@@ -26,9 +26,36 @@ const getAllProducts = catchAsync(async (req, res) => {
   });
 });
 
+const getSingeProduct = catchAsync(async (req, res) => {
+  const { productId } = req.params;
+  const result = await productService.getSingeProduct(productId);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Product get successfully",
+    data: result,
+  });
+});
+
+const updateProduct = catchAsync(async (req, res) => {
+  const { productId } = req.params;
+  const files: any = req.files;
+  const result = await productService.updateProduct(req.body, productId, files);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Product updated successfully",
+    data: result,
+  });
+});
+
 const productController = {
   addNewProduct,
   getAllProducts,
+  getSingeProduct,
+  updateProduct,
 };
 
 export default productController;
