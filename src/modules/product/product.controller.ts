@@ -4,7 +4,8 @@ import sendResponse from "../../utils/sendResponse";
 import productService from "./product.service";
 
 const addNewProduct = catchAsync(async (req, res) => {
-  const result = await productService.addNewProduct(req.body);
+  const files: any = req.files;
+  const result = await productService.addNewProduct(req.body, files);
 
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,

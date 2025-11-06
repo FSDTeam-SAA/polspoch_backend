@@ -55,7 +55,7 @@ const ProductSchema = new Schema<IProduct>(
       type: Boolean,
       default: true,
     },
-    image: [
+    images: [
       {
         public_id: { type: String, required: true },
         url: { type: String, required: true },
