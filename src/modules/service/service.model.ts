@@ -13,6 +13,12 @@ const ServiceSchema = new Schema<IService>(
       type: String,
       trim: true,
     },
+    images: [
+      {
+        public_id: { type: String, required: true },
+        url: { type: String, required: true },
+      },
+    ],
     material: {
       type: [String],
       default: [],
