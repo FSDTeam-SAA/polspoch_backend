@@ -13,5 +13,8 @@ router.post(
   serviceController.createNewService
 );
 
+router.get("/all-services", serviceController.getAllServices);
+router.get("/:serviceId", serviceController.getSingleService);
+
 const serviceRouter = router;
 export default serviceRouter;
