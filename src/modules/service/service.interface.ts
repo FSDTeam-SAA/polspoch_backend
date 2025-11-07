@@ -1,7 +1,7 @@
 export interface IService {
   serviceName: string;
   description: string;
-  image: {
+  images: {
     public_id: string;
     url: string;
   };
