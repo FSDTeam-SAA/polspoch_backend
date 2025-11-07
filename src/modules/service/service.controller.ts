@@ -15,8 +15,33 @@ const createNewService = catchAsync(async (req, res) => {
   });
 });
 
+const getAllServices = catchAsync(async (req, res) => {
+  const result = await serviceServices.getAllServices();
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Services get successfully",
+    data: result,
+  });
+});
+
+const getSingleService = catchAsync(async (req, res) => {
+  const { serviceId } = req.params;
+  const result = await serviceServices.getSingleService(serviceId);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Service get successfully",
+    data: result,
+  });
+});
+
 const serviceController = {
   createNewService,
+  getAllServices,
+  getSingleService,
 };
 
 export default serviceController;

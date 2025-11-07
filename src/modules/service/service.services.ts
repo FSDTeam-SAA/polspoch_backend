@@ -1,3 +1,5 @@
+import { StatusCodes } from "http-status-codes";
+import AppError from "../../errors/AppError";
 import { uploadToCloudinary } from "../../utils/cloudinary";
 import { IService } from "./service.interface";
 import { Service } from "./service.model";
@@ -52,8 +54,25 @@ const createNewService = async (payload: IService, files: any) => {
   return newService;
 };
 
+//! pagination,searching,sorting and filtering is not completed
+const getAllServices = async () => {
+  const result = await Service.find();
+  return result;
+};
+
+const getSingleService = async (serviceId: string) => {
+  const existingService = await Service.findById(serviceId);
+  if (!existingService)
+    throw new AppError("Service not found", StatusCodes.NOT_FOUND);
+
+  const result = await Service.findById(serviceId);
+  return result;
+};
+
 const serviceServices = {
   createNewService,
+  getAllServices,
+  getSingleService,
 };
 
 export default serviceServices;
