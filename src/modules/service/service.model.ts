@@ -11,7 +11,6 @@ const ServiceSchema = new Schema<IService>(
     },
     description: {
       type: String,
-      trim: true,
     },
     images: [
       {
