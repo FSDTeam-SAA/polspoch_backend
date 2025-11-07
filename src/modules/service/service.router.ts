@@ -16,5 +16,14 @@ router.post(
 router.get("/all-services", serviceController.getAllServices);
 router.get("/:serviceId", serviceController.getSingleService);
 
+router.put(
+  "/update-service/:serviceId",
+  upload.fields([
+    { name: "images", maxCount: 5 },
+    { name: "technicalImages", maxCount: 5 },
+  ]),
+  serviceController.updateService
+);
+
 const serviceRouter = router;
 export default serviceRouter;
