@@ -38,10 +38,28 @@ const getSingleService = catchAsync(async (req, res) => {
   });
 });
 
+const updateService = catchAsync(async (req, res) => {
+  const { serviceId } = req.params;
+  const files: any = req.files;
+  const result = await serviceServices.updateService(
+    req.body,
+    serviceId,
+    files
+  );
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Service updated successfully",
+    data: result,
+  });
+});
+
 const serviceController = {
   createNewService,
   getAllServices,
   getSingleService,
+  updateService,
 };
 
 export default serviceController;
