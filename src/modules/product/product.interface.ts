@@ -12,6 +12,7 @@ export interface IProduct {
   long: number[];
   finish: string[];
   quality: string[];
+  price: number;
   manufacturingProcess: string;
   productInfo: {
     title: string;

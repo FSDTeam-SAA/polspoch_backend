@@ -35,6 +35,10 @@ const ProductSchema = new Schema<IProduct>(
       type: [String],
       default: [],
     },
+    price: {
+      type: Number,
+      required: true,
+    },
     manufacturingProcess: {
       type: String,
       trim: true,

@@ -1,9 +1,10 @@
 import { Router } from "express";
-import userRouter from "../modules/user/user.router";
 import authRouter from "../modules/auth/auth.router";
+import cartRouter from "../modules/cart/cart.router";
 import contactRouter from "../modules/contact/contact.router";
 import productRouter from "../modules/product/product.router";
 import serviceRouter from "../modules/service/service.router";
+import userRouter from "../modules/user/user.router";
 
 const router = Router();
 
@@ -22,12 +23,16 @@ const moduleRoutes = [
   },
   {
     path: "/product",
-    route:productRouter,
+    route: productRouter,
   },
   {
     path: "/service",
-    route:serviceRouter,
-  }
+    route: serviceRouter,
+  },
+  {
+    path: "/cart",
+    route: cartRouter,
+  },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
