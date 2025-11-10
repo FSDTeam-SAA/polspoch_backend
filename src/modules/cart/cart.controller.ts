@@ -4,7 +4,8 @@ import sendResponse from "../../utils/sendResponse";
 import cartService from "./cart.service";
 
 const addToCart = catchAsync(async (req, res) => {
-  const cart = await cartService.addToCart(req.body);
+  const { email } = req.user;
+  const cart = await cartService.addToCart(req.body, email);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
