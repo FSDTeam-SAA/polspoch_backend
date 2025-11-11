@@ -100,9 +100,20 @@ const getMyCart = async (email: string, page: number, limit: number) => {
   };
 };
 
+const deletedCart = async (email: string, cartId: string) => {
+  const isUserExist = await User.findOne({ email });
+  if (!isUserExist) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+
+  const isCartExist = await Cart.findById(cartId);
+  if (!isCartExist) throw new AppError("Cart not found", StatusCodes.NOT_FOUND);
+
+  await Cart.findByIdAndDelete(cartId);
+};
+
 const cartService = {
   addToCart,
   getMyCart,
+  deletedCart,
 };
 
 export default cartService;
