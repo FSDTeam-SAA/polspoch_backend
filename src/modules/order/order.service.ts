@@ -116,9 +116,39 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
   };
 };
 
+const getAllOrders = async (page: number, limit: number) => {
+  const result = await Order.find()
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .populate({
+      path: "userId",
+      select: "firstName lastName",
+    })
+    .populate({
+      path: "productId",
+      select: "productName images price",
+    })
+    .populate({
+      path: "serviceId",
+      select: "serviceName images price",
+    });
+
+  return {
+    data: result,
+    meta: {
+      total: await Order.countDocuments(),
+      page,
+      limit,
+      totalPages: Math.ceil((await Order.countDocuments()) / limit),
+    },
+  };
+};
+
 const orderService = {
   createNewOrder,
   getMyOrders,
+  getAllOrders,
 };
 
 export default orderService;
