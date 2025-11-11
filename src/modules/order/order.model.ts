@@ -3,14 +3,15 @@ import { IOrder } from "./order.interface";
 
 const OrderSchema = new Schema<IOrder>(
   {
-    userId: { type: Schema.Types.ObjectId },
+    userId: { type: Schema.Types.ObjectId, ref: "User" },
     productId: { type: Schema.Types.ObjectId, ref: "Product" },
     serviceId: { type: Schema.Types.ObjectId, ref: "Service" },
     cartItems: [
       {
-        cartId: { type: Schema.Types.ObjectId, required: true },
+        cartId: { type: Schema.Types.ObjectId, ref: "Cart" },
         quantity: { type: Number, required: true },
       },
+      { _id: false },
     ],
     status: {
       type: String,
@@ -18,7 +19,8 @@ const OrderSchema = new Schema<IOrder>(
       default: "pending",
     },
     type: { type: String, required: true },
-    totalAmount: { type: Number, required: true },
+    totalAmount: { type: Number },
+    quantity: { type: Number },
     paymentStatus: {
       type: String,
       enum: ["paid", "unpaid"],

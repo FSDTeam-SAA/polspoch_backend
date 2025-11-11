@@ -1,7 +1,6 @@
 import { Schema, model } from "mongoose";
 import { IService } from "./service.interface";
 
-
 const ServiceSchema = new Schema<IService>(
   {
     serviceName: {
@@ -18,6 +17,10 @@ const ServiceSchema = new Schema<IService>(
         url: { type: String, required: true },
       },
     ],
+    price: {
+      type: Number,
+      required: true,
+    },
     material: {
       type: [String],
       default: [],
