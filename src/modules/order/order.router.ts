@@ -7,5 +7,7 @@ const router = Router();
 
 router.post("/create-order", auth(USER_ROLE.USER), orderController.createOrder);
 
+router.get("/my-orders", auth(USER_ROLE.USER), orderController.getMyOrders);
+
 const orderRouter = router;
 export default orderRouter;
