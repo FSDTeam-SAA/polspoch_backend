@@ -32,9 +32,22 @@ const getMyCart = catchAsync(async (req, res) => {
   });
 });
 
+const deletedCart = catchAsync(async (req, res) => {
+  const { email } = req.user;
+  const { cartId } = req.params;
+  await cartService.deletedCart(email, cartId);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Cart deleted successfully",
+  });
+});
+
 const cartController = {
   addToCart,
   getMyCart,
+  deletedCart,
 };
 
 export default cartController;
