@@ -5,6 +5,7 @@ export interface IService {
     public_id: string;
     url: string;
   };
+  price?: number;
   material: string[];
   thickness: number[];
   aLength?: string;
