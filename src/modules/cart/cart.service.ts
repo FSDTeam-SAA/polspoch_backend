@@ -64,8 +64,45 @@ const addToCart = async (payload: ICart, email: string) => {
   }
 };
 
+const getMyCart = async (email: string, page: number, limit: number) => {
+  const isUserExist = await User.findOne({ email });
+  if (!isUserExist) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+
+  const skip = (page - 1) * limit;
+
+  const carts = await Cart.find({ userId: isUserExist._id })
+    .populate({
+      path: "userId",
+      select: "firstName lastName",
+    })
+    .populate({
+      path: "productId",
+      select: "productName images price",
+    })
+    .populate({
+      path: "serviceId",
+      select: "serviceName images price",
+    })
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  const total = await Cart.countDocuments({ userId: isUserExist._id });
+
+  return {
+    data: carts,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
 const cartService = {
   addToCart,
+  getMyCart,
 };
 
 export default cartService;
