@@ -15,8 +15,26 @@ const createOrder = catchAsync(async (req, res) => {
   });
 });
 
+const getMyOrders = catchAsync(async (req, res) => {
+  const { email } = req.user;
+
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+
+  const result = await orderService.getMyOrders(email, page, limit);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Orders fetched successfully",
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
 const orderController = {
   createOrder,
+  getMyOrders,
 };
 
 export default orderController;
