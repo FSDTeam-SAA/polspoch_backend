@@ -15,8 +15,26 @@ const addToCart = catchAsync(async (req, res) => {
   });
 });
 
+const getMyCart = catchAsync(async (req, res) => {
+  const { email } = req.user;
+
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+
+  const result = await cartService.getMyCart(email, page, limit);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Cart fetched successfully",
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
 const cartController = {
   addToCart,
+  getMyCart,
 };
 
 export default cartController;

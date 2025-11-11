@@ -3,7 +3,7 @@ import { ICart } from "./cart.interface";
 
 const cartModel = new Schema<ICart>(
   {
-    userId: { type: Schema.Types.ObjectId },
+    userId: { type: Schema.Types.ObjectId, ref: "User" },
     productId: { type: Schema.Types.ObjectId, ref: "Product" },
     serviceId: { type: Schema.Types.ObjectId, ref: "Service" },
     type: { type: String },
