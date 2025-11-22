@@ -1,72 +1,64 @@
-import { model, Schema } from "mongoose";
-import { IProduct } from "./product.interface";
+import { Schema, model } from 'mongoose'
+import { IProduct } from './product.interface'
 
 const ProductSchema = new Schema<IProduct>(
   {
+    reference: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    family: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     productName: {
       type: String,
       required: true,
       trim: true,
     },
-    description: {
+
+    size1: { type: Number, default: null },
+    size2: { type: Number, default: null },
+    thickness: { type: Number, default: null },
+
+    finishQuality: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    // All UNIT SIZE, 1000, 2000, 2500, "CUSTOMIZED" → Converted into an array
+    unitSizes: {
+      type: [Schema.Types.Mixed], // numbers + string values
+      default: [],
+    },
+    unitSizeCustomizationNote: {
       type: String,
     },
-    longestSide: {
-      type: [Number],
-      default: [],
+
+    customizedMinRange: { type: Number, default: null },
+
+    measureUnit: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    shortestSide: {
-      type: [Number],
-      default: [],
-    },
-    thickness: {
-      type: [Number],
-      default: [],
-    },
-    long: {
-      type: [Number],
-      default: [],
-    },
-    finish: {
-      type: [String],
-      default: [],
-    },
-    quality: {
-      type: [String],
-      default: [],
-    },
-    price: {
+
+    kgsPerUnit: {
       type: Number,
       required: true,
     },
-    manufacturingProcess: {
-      type: String,
-      trim: true,
+
+    pricePerUnit: {
+      type: Number,
+      required: true,
     },
-    productInfo: [
-      {
-        title: { type: String, trim: true },
-        description: { type: String },
-      },
-    ],
-    technicalInfo: [
-      {
-        title: { type: String, trim: true },
-        description: { type: String },
-      },
-    ],
-    inStock: {
-      type: Boolean,
-      default: true,
-    },
-    images: [
-      {
-        public_id: { type: String, required: true },
-        url: { type: String, required: true },
-      },
-    ],
+
+    availabilityNote: { type: String, default: null },
   },
   { timestamps: true, versionKey: false }
-);
+)
 
-export const Product = model<IProduct>("Product", ProductSchema);
+export const Product = model<IProduct>('Product', ProductSchema)

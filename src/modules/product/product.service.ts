@@ -1,125 +1,169 @@
-import { StatusCodes } from "http-status-codes";
-import AppError from "../../errors/AppError";
+import { StatusCodes } from 'http-status-codes'
+import AppError from '../../errors/AppError'
 import {
   deleteFromCloudinary,
   uploadToCloudinary,
-} from "../../utils/cloudinary";
-import { IProduct } from "./product.interface";
-import { Product } from "./product.model";
+} from '../../utils/cloudinary'
+import Order from '../order/order.model'
+import { Product } from './product.model'
+import { IProduct } from './product.interface'
 
+// ============================
+// 📌 ADD PRODUCT
+// ============================
 const addNewProduct = async (
   payload: IProduct,
   files: Express.Multer.File[]
 ) => {
-  let images: { public_id: string; url: string }[] = [];
+  let images: { public_id: string; url: string }[] = []
 
-  // ----- Handle file uploads -----
-  if (files && files.length > 0) {
-    const uploadPromises = files.map((file: Express.Multer.File) =>
-      uploadToCloudinary(file.path, "products")
-    );
-    const uploadedResults = await Promise.all(uploadPromises);
+  // Upload new images
+  if (files.length > 0) {
+    const uploadResults = await Promise.all(
+      files.map((file) => uploadToCloudinary(file.path, 'products'))
+    )
 
-    images = uploadedResults.map((uploaded: any) => ({
-      public_id: uploaded.public_id ?? "",
+    images = uploadResults.map((uploaded: any) => ({
+      public_id: uploaded.public_id,
       url: uploaded.secure_url,
-    }));
-
-    // Delete old images if provided
-    if (payload.images && payload.images.length > 0) {
-      const oldImagesPublicIds = payload.images.map(
-        (img) => img.public_id ?? ""
-      );
-      await Promise.all(
-        oldImagesPublicIds.map((publicId) => deleteFromCloudinary(publicId))
-      );
-    }
-  } else {
-    images = (payload.images || []).map((img) => ({
-      public_id: img.public_id ?? "",
-      url: img.url ?? "",
-    }));
+    }))
   }
 
-  const result = await Product.create({
+  // Create product
+  const product = await Product.create({
     ...payload,
     images,
-  });
+  })
 
-  return result;
-};
+  return product
+}
 
-//! Pagination,searching,sorting and filtering is not completed.
-const getAllProducts = async () => {
-  const result = await Product.find({});
-  return result;
-};
+// ============================
+// 📌 GET PRODUCTS (Pagination + Search + Sort + Filter)
+// ============================
+const getAllProducts = async (query: any) => {
+  const { page = 1, limit = 10, search, sort = '-createdAt', category } = query
 
+  const filter: any = {}
+
+  if (search) {
+    filter.productName = { $regex: search, $options: 'i' }
+  }
+
+  if (category) {
+    filter.category = category
+  }
+
+  const skip = (Number(page) - 1) * Number(limit)
+
+  const products = await Product.find(filter)
+    .sort(sort)
+    .skip(skip)
+    .limit(Number(limit))
+
+  const total = await Product.countDocuments(filter)
+
+  return {
+    meta: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      totalPages: Math.ceil(total / Number(limit)),
+    },
+    data: products,
+  }
+}
+
+// ============================
+// 📌 GET SINGLE PRODUCT
+// ============================
 const getSingeProduct = async (productId: string) => {
-  const existingProduct = await Product.findById(productId);
-  if (!existingProduct)
-    throw new AppError("Product not found", StatusCodes.NOT_FOUND);
+  const product = await Product.findById(productId)
 
-  const result = await Product.findById(productId);
-  return result;
-};
+  if (!product) throw new AppError('Product not found', StatusCodes.NOT_FOUND)
 
+  return product
+}
+
+// ============================
+// 📌 UPDATE PRODUCT
+// ============================
 const updateProduct = async (
-  payload: IProduct,
+  payload: IProduct & { deleteImages?: string[] },
   productId: string,
   files: Express.Multer.File[]
 ) => {
-  const existingProduct = await Product.findById(productId);
-  if (!existingProduct)
-    throw new AppError("Product not found", StatusCodes.NOT_FOUND);
+  const product = await Product.findById(productId)
 
-  let images: { public_id: string; url: string }[] = [];
+  if (!product) throw new AppError('Product not found', StatusCodes.NOT_FOUND)
 
-  // ----- Handle file uploads -----
-  if (files && files.length > 0) {
-    const uploadPromises = files.map((file: Express.Multer.File) =>
-      uploadToCloudinary(file.path, "products")
-    );
-    const uploadedResults = await Promise.all(uploadPromises);
+  let updatedImages = [...product.images]
 
-    images = uploadedResults.map((uploaded: any) => ({
-      public_id: uploaded.public_id ?? "",
-      url: uploaded.secure_url,
-    }));
+  // // Handle image deletion (if client sends list of public_ids to remove)
+  
+  if (payload.deleteImages?.length) {
+    updatedImages = updatedImages.filter(
+      (img) => !payload.deleteImages?.includes(img.public_id)
+    )
 
-    // Delete old images if provided
-    if (payload.images && payload.images.length > 0) {
-      const oldImagesPublicIds = payload.images.map(
-        (img) => img.public_id ?? ""
-      );
-      await Promise.all(
-        oldImagesPublicIds.map((publicId) => deleteFromCloudinary(publicId))
-      );
-    }
-  } else {
-    images = (payload.images || []).map((img) => ({
-      public_id: img.public_id ?? "",
-      url: img.url ?? "",
-    }));
+    await Promise.all(
+      payload.deleteImages.map((public_id) => deleteFromCloudinary(public_id))
+    )
   }
 
-  const result = await Product.findOneAndUpdate(
-    { _id: productId },
-    { ...payload, images },
+  // Handle new image uploads
+  if (files.length > 0) {
+    const uploadResults = await Promise.all(
+      files.map((file) => uploadToCloudinary(file.path, 'products'))
+    )
+
+    const newImages = uploadResults.map((uploaded: any) => ({
+      public_id: uploaded.public_id,
+      url: uploaded.secure_url,
+    }))
+
+    updatedImages.push(...newImages)
+  }
+
+  const updatedProduct = await Product.findByIdAndUpdate(
+    productId,
+    {
+      ...payload,
+      images: updatedImages,
+    },
     { new: true }
-  );
-  return result;
-};
+  )
 
+  return updatedProduct
+}
 
-//! i things there add some logic if any user order this product which one delete then add error message.
+// ============================
+// 📌 DELETE PRODUCT (Block If Has Orders)
+// ============================
 const deleteProduct = async (productId: string) => {
-  const isExistingProduct = await Product.findById(productId);
-  if (!isExistingProduct)
-    throw new AppError("Product not found", StatusCodes.NOT_FOUND);
+  const product = await Product.findById(productId)
 
-  await Product.findByIdAndDelete(productId);
-};
+  if (!product) throw new AppError('Product not found', StatusCodes.NOT_FOUND)
+
+  const hasOrders = await Order.findOne({ 'items.productId': productId })
+
+  if (hasOrders) {
+    throw new AppError(
+      'Cannot delete product because it is linked to existing orders.',
+      StatusCodes.CONFLICT
+    )
+  }
+
+  // Delete images from cloudinary
+  await Promise.all(
+    product.images.map((img) => deleteFromCloudinary(img.public_id))
+  )
+
+  // Delete product
+  await Product.findByIdAndDelete(productId)
+
+  return true
+}
 
 const productService = {
   addNewProduct,
@@ -127,6 +171,6 @@ const productService = {
   getSingeProduct,
   updateProduct,
   deleteProduct,
-};
+}
 
-export default productService;
+export default productService
