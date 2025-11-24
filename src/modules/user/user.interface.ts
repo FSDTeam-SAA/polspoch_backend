@@ -8,10 +8,12 @@ export interface IUser {
   email: string;
   phone: string;
   password: string;
+  gender: string;
   street: string;
   location: string;
   postalCode: string;
   dateOfBirth: Date;
+  companyName: string;
   role: string;
   image: {
     public_id: string;

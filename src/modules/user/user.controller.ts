@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
+import config from "../../config";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import userService from "./user.service";
-import config from "../../config";
 
 const registerUser = catchAsync(async (req, res) => {
   const result = await userService.registerUser(req.body);
@@ -61,7 +61,6 @@ const getAllUsers = catchAsync(async (req, res) => {
   });
 });
 
-
 const getMyProfile = catchAsync(async (req, res) => {
   const { email } = req.user;
 
@@ -86,6 +85,18 @@ const updateUserProfile = catchAsync(async (req, res) => {
   });
 });
 
+const updateUserProfileImage = catchAsync(async (req, res) => {
+  const { email } = req.user;
+  const result = await userService.updateUserProfileImage(email, req.file);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "User profile image updated successfully",
+    data: result,
+  });
+});
+
 const userController = {
   registerUser,
   verifyEmail,
@@ -93,6 +104,7 @@ const userController = {
   getAllUsers,
   getMyProfile,
   updateUserProfile,
+  updateUserProfileImage,
 };
 
 export default userController;
