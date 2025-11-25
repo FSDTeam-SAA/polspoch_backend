@@ -1,6 +1,11 @@
 import { Request, Response } from 'express'
 import { ProductService } from './product.service'
-import { uploadToCloudinary, deleteFromCloudinary } from '../../utils/cloudinary';
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from '../../utils/cloudinary'
+import sendResponse from '../../utils/sendResponse'
+import catchAsync from '../../utils/catchAsync'
 
 export const ProductController = {
   createProduct: async (req: Request, res: Response) => {
@@ -38,14 +43,23 @@ export const ProductController = {
     }
   },
 
-  getAllProducts: async (req: Request, res: Response) => {
-    try {
-      const products = await ProductService.getAllProducts()
-      res.json({ success: true, data: products })
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message })
-    }
-  },
+  getAllProducts: catchAsync(async (req, res) => {
+    const { family, search, page, limit } = req.query
+
+    const result = await ProductService.getAllProducts({
+      family: family as string,
+      search: search as string,
+      page: Number(page),
+      limit: Number(limit),
+    })
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Products fetched successfully',
+      data: result,
+    })
+  }),
 
   getSingleProduct: async (req: Request, res: Response) => {
     try {
@@ -53,8 +67,8 @@ export const ProductController = {
       const product = await ProductService.getSingleProduct(id)
 
       if (!product) {
-         res.status(404).json({ success: false, message: 'Not found' })
-         return
+        res.status(404).json({ success: false, message: 'Not found' })
+        return
       }
 
       res.json({ success: true, data: product })
@@ -63,7 +77,7 @@ export const ProductController = {
     }
   },
 
-  updateProduct: async (req: Request, res: Response):  Promise<void> => {
+  updateProduct: async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
       const body = req.body
@@ -71,8 +85,8 @@ export const ProductController = {
 
       const existing = await ProductService.getSingleProduct(id)
       if (!existing) {
-         res.status(404).json({ success: false, message: 'Not found' })
-         return
+        res.status(404).json({ success: false, message: 'Not found' })
+        return
       }
 
       let newImages = existing.productImage
@@ -125,8 +139,8 @@ export const ProductController = {
 
       const product = await ProductService.getSingleProduct(id)
       if (!product) {
-         res.status(404).json({ success: false, message: 'Not found' })
-         return
+        res.status(404).json({ success: false, message: 'Not found' })
+        return
       }
 
       // Delete images from cloudinary
