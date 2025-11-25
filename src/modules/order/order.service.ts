@@ -62,7 +62,7 @@ const createNewOrder = async (payload: IOrder, email: string) => {
 
     orderData.productId = product._id;
     orderData.quantity = payload.quantity || 1;
-    orderData.totalAmount = (product.price || 0) * orderData.quantity;
+    // orderData.totalAmount = (product.price || 0) * orderData.quantity;
   }
 
   // 🧰 If type = service
