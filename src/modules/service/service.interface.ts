@@ -14,6 +14,11 @@ export interface IService {
   dLength?: string;
   eLength?: string;
   fLength?: string;
+  // degrees: {
+  //   degree1: string;
+  //   degree2: string;
+
+  // }
 
   serviceInfo: {
     title: string;
