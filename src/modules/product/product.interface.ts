@@ -1,25 +1,36 @@
+export interface IProductFeature {
+  reference: string
+  size1?: number | null
+  size2?: number | null
+  thickness?: number | null
+  finishQuality: string
+  unitSizes: (number | string)[]
+  kgsPerUnit: number
+  miterPerUnitPrice: number
+}
+
+interface IProductImage {
+  url: string
+  publickey: string
+}
+
 export interface IProduct {
-  productName: string;
-  description: string;
-  inStock: boolean;
-  images: {
-    public_id: string;
-    url: string;
-  }[];
-  longestSide: number[];
-  shortestSide: number[];
-  thickness: number[];
-  long: number[];
-  finish: string[];
-  quality: string[];
-  price: number;
-  manufacturingProcess: string;
-  productInfo: {
-    title: string;
-    description: string;
-  }[];
-  technicalInfo: {
-    title: string;
-    description: string;
-  }[];
+  family: string
+  productName: string
+
+  features: IProductFeature[]
+
+  unitSizeCustomizationNote?: string | null
+
+  minRange?: number | null
+  maxRange?: number | null
+
+  measureUnit: string
+
+  availabilityNote?: string | null
+
+  productImage: IProductImage[]
+
+  createdAt?: Date
+  updatedAt?: Date
 }
