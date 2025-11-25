@@ -1,25 +1,24 @@
-import { Router } from "express";
-import { upload } from "../../middleware/multer.middleware";
-import productController from "./product.controller";
+import { Router } from 'express'
+import { ProductController } from './product.controller'
+import { upload } from '../../middleware/multer.middleware'
 
-const router = Router();
+const router = Router()
 
 router.post(
-  "/add-product",
-  upload.array("images", 10),
-  productController.addNewProduct
-);
+  '/add-product',
+  upload.array('productImage', 10),
+  ProductController.createProduct
+)
 
-router.get("/all-products", productController.getAllProducts);
-router.get("/:productId", productController.getSingeProduct);
+router.get('/', ProductController.getAllProducts)
+router.get('/:id', ProductController.getSingleProduct)
 
 router.put(
-  "/update-product/:productId",
-  upload.array("images", 10),
-  productController.updateProduct
-);
+  '/update/:id',
+  upload.array('productImage', 10),
+  ProductController.updateProduct
+)
 
-router.delete("/delete-product/:productId", productController.deleteProduct);
+router.delete('/:id', ProductController.deleteProduct)
 
-const productRouter = router;
-export default productRouter;
+export default router

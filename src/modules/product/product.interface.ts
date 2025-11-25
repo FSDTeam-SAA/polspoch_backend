@@ -1,23 +1,36 @@
-export interface IProduct {
+export interface IProductFeature {
   reference: string
-  family: string
-  productName: string
-  images: {
-    public_id: string
-    url: string
-  }[]
   size1?: number | null
   size2?: number | null
   thickness?: number | null
-
   finishQuality: string
-
   unitSizes: (number | string)[]
-  unitSizeCustomizationNote: string
-  customizedMinRange?: number | null
-  measureUnit: string
   kgsPerUnit: number
-  pricePerUnit: number
+  miterPerUnitPrice: number
+}
+
+interface IProductImage {
+  url: string
+  publickey: string
+}
+
+export interface IProduct {
+  family: string
+  productName: string
+
+  features: IProductFeature[]
+
+  unitSizeCustomizationNote?: string | null
+
+  minRange?: number | null
+  maxRange?: number | null
+
+  measureUnit: string
 
   availabilityNote?: string | null
+
+  productImage: IProductImage[]
+
+  createdAt?: Date
+  updatedAt?: Date
 }
