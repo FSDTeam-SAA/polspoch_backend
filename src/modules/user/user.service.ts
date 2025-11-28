@@ -218,7 +218,9 @@ const updateUserProfileImage = async (email: string, file: any) => {
 
     const result = await User.findOneAndUpdate({ email }, updateData, {
       new: true,
-    });
+    }).select(
+      "-password -otp -otpExpires -resetPasswordOtp -resetPasswordOtpExpires"
+    );
 
     if (file && oldImagePublicId) {
       await deleteFromCloudinary(oldImagePublicId);
