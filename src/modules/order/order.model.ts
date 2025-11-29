@@ -1,35 +1,89 @@
-import { model, Schema } from "mongoose";
-import { IOrder } from "./order.interface";
+import { Schema, model, Types } from "mongoose";
 
-const OrderSchema = new Schema<IOrder>(
+const cartItemSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User" },
-    productId: { type: Schema.Types.ObjectId, ref: "Product" },
-    serviceId: { type: Schema.Types.ObjectId, ref: "Service" },
-    cartItems: [
-      {
-        cartId: { type: Schema.Types.ObjectId, ref: "Cart" },
-        quantity: { type: Number, required: true },
+    cartId: {
+      type: Types.ObjectId,
+      ref: "Cart",
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+  },
+  { _id: false }
+);
+
+const orderSchema = new Schema(
+  {
+    userId: {
+      type: Types.ObjectId,
+      ref: "User",
+    },
+
+    product: {
+      productId: {
+        type: Types.ObjectId,
+        ref: "Product",
       },
-      { _id: false },
-    ],
+      featuredId: {
+        type: Types.ObjectId,
+        ref: "Featured",
+      },
+      size: {
+        type: Number,
+      },
+      unitSize: {
+        type: Number,
+      },
+      range: {
+        type: Number,
+      },
+    },
+
+    serviceId: {
+      type: Types.ObjectId,
+      ref: "Service",
+    },
+
+    cartItems: [cartItemSchema],
+
+    type: {
+      type: String,
+      enum: ["product", "service", "cart"],
+      required: true,
+    },
+
     status: {
       type: String,
       enum: ["pending", "completed", "rejected"],
       default: "pending",
     },
-    type: { type: String, required: true },
-    totalAmount: { type: Number },
-    quantity: { type: Number },
+
     paymentStatus: {
       type: String,
       enum: ["paid", "unpaid"],
       default: "unpaid",
     },
-    purchaseDate: { type: Date, default: Date.now },
+
+    purchaseDate: {
+      type: Date,
+      default: Date.now,
+    },
+
+    quantity: {
+      type: Number,
+      min: 1,
+    },
+
+    totalAmount: {
+      type: Number,
+      min: 0,
+    },
   },
-  { timestamps: true, versionKey: false }
+  { timestamps: true }
 );
 
-const Order = model<IOrder>("Order", OrderSchema);
-export default Order;
+export const Order = model("Order", orderSchema);

@@ -7,7 +7,14 @@ export interface ICartItem {
 
 export interface IOrder {
   userId?: Types.ObjectId;
-  productId?: Types.ObjectId;
+  product: {
+    productId?: Types.ObjectId;
+    featuredId?: Types.ObjectId;
+    size: number;
+    unitSize: number;
+    range: number;
+  };
+
   serviceId?: Types.ObjectId;
   cartItems?: ICartItem[];
   type: "product" | "service" | "cart";
