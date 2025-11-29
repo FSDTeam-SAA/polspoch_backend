@@ -5,6 +5,12 @@ export interface ICartItem {
   quantity: number;
 }
 
+//  interface IProductLean {
+//   _id: string;
+//   productName: string;
+//   features?: any[];
+// }
+
 export interface IOrder {
   userId?: Types.ObjectId;
   product: {
@@ -13,6 +19,7 @@ export interface IOrder {
     size: number;
     unitSize: number;
     range: number;
+    // features?: any[];
   };
 
   serviceId?: Types.ObjectId;
