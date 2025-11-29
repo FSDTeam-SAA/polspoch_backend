@@ -1,4 +1,4 @@
-import { Schema, model, Types } from "mongoose";
+import { model, Schema, Types } from "mongoose";
 
 const cartItemSchema = new Schema(
   {
@@ -30,7 +30,7 @@ const orderSchema = new Schema(
       },
       featuredId: {
         type: Types.ObjectId,
-        ref: "Featured",
+        ref: "Product",
       },
       size: {
         type: Number,
@@ -83,7 +83,7 @@ const orderSchema = new Schema(
       min: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true, versionKey: false }
 );
 
 export const Order = model("Order", orderSchema);
