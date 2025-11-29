@@ -68,6 +68,17 @@ const userSchema = new Schema<IUser>(
   {
     timestamps: true,
     versionKey: false,
+    toJSON: {
+      transform(doc, ret) {
+        // extra safety layer
+        delete ret.password;
+        delete ret.otp;
+        delete ret.otpExpires;
+        delete ret.resetPasswordOtp;
+        delete ret.resetPasswordOtpExpires;
+        return ret;
+      },
+    },
   }
 );
 
