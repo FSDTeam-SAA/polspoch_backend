@@ -13,10 +13,10 @@ const cartModel = new Schema<ICart>(
   { timestamps: true, versionKey: false }
 );
 
-cartModel.pre("save", function (next) {
-  this.type = "";
-  next();
-});
+// cartModel.pre("save", function (next) {
+//   this.type = "";
+//   next();
+// });
 
 const Cart = model<ICart>("Cart", cartModel);
 

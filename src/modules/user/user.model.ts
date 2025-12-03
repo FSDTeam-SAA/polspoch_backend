@@ -1,7 +1,7 @@
-import { model, Schema } from "mongoose";
-import { IUser, userModel } from "./user.interface";
-import config from "../../config";
 import bcrypt from "bcrypt";
+import { model, Schema } from "mongoose";
+import config from "../../config";
+import { IUser, userModel } from "./user.interface";
 
 const userSchema = new Schema<IUser>(
   {
@@ -28,6 +28,9 @@ const userSchema = new Schema<IUser>(
     street: {
       type: String,
     },
+    gender: {
+      type: String,
+    },
     location: {
       type: String,
     },
@@ -36,6 +39,9 @@ const userSchema = new Schema<IUser>(
     },
     dateOfBirth: {
       type: Date,
+    },
+    companyName: {
+      type: String,
     },
     role: {
       type: String,
@@ -62,6 +68,17 @@ const userSchema = new Schema<IUser>(
   {
     timestamps: true,
     versionKey: false,
+    toJSON: {
+      transform(doc, ret) {
+        // extra safety layer
+        delete ret.password;
+        delete ret.otp;
+        delete ret.otpExpires;
+        delete ret.resetPasswordOtp;
+        delete ret.resetPasswordOtpExpires;
+        return ret;
+      },
+    },
   }
 );
 

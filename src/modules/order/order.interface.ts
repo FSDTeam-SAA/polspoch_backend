@@ -5,9 +5,23 @@ export interface ICartItem {
   quantity: number;
 }
 
+//  interface IProductLean {
+//   _id: string;
+//   productName: string;
+//   features?: any[];
+// }
+
 export interface IOrder {
   userId?: Types.ObjectId;
-  productId?: Types.ObjectId;
+  product: {
+    productId?: Types.ObjectId;
+    featuredId?: Types.ObjectId;
+    size: number;
+    unitSize: number;
+    range: number;
+    // features?: any[];
+  };
+
   serviceId?: Types.ObjectId;
   cartItems?: ICartItem[];
   type: "product" | "service" | "cart";

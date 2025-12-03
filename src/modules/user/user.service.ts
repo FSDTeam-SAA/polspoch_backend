@@ -199,6 +199,39 @@ const updateUserProfile = async (payload: any, email: string, file: any) => {
   return result;
 };
 
+const updateUserProfileImage = async (email: string, file: any) => {
+  const user = await User.findOne({ email, isVerified: true }).select("image");
+  if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+
+  let oldImagePublicId: string | undefined;
+
+  if (file) {
+    const uploadResult = await uploadToCloudinary(file.path, "users");
+    oldImagePublicId = user.image?.public_id;
+
+    const updateData = {
+      image: {
+        public_id: uploadResult.public_id,
+        url: uploadResult.secure_url,
+      },
+    };
+
+    const result = await User.findOneAndUpdate({ email }, updateData, {
+      new: true,
+    }).select(
+      "-password -otp -otpExpires -resetPasswordOtp -resetPasswordOtpExpires"
+    );
+
+    if (file && oldImagePublicId) {
+      await deleteFromCloudinary(oldImagePublicId);
+    }
+
+    return result;
+  } else {
+    throw new AppError("No file provided", StatusCodes.BAD_REQUEST);
+  }
+};
+
 const userService = {
   registerUser,
   verifyEmail,
@@ -206,6 +239,7 @@ const userService = {
   getAllUsers,
   getMyProfile,
   updateUserProfile,
+  updateUserProfileImage,
 };
 
 export default userService;
