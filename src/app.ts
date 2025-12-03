@@ -17,13 +17,14 @@ app.use(cookieParser());
 
 const corsOptions = {
   origin: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "https://polspoch-website.vercel.app",
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://polspoch-website.vercel.app',
+    'https://polspoch-dashboard.vercel.app',
   ],
-  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   credentials: true,
-};
+}
 
 app.use(cors(corsOptions));
 
