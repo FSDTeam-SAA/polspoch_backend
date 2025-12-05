@@ -18,6 +18,8 @@ const paymentModel = new Schema<IPayment>(
     timestamps: true,
   }
 );
+
+
 const Payment = model<IPayment>("Payment", paymentModel);
 
 export default Payment;
