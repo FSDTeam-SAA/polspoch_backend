@@ -9,7 +9,6 @@ import { IOrder } from "./order.interface";
 import { Order } from "./order.model";
 
 const createNewOrder = async (payload: IOrder, email: string) => {
-  // ১. ইউজার চেক
   const user = await User.isUserExistByEmail(email);
   if (!user) {
     throw new AppError("User not found", StatusCodes.NOT_FOUND);
@@ -166,7 +165,6 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
   };
 };
 
-
 const getAllOrders = async (page: number, limit: number) => {
   // Fetch orders and total count in parallel
   const [orders, totalOrders] = await Promise.all([
@@ -216,7 +214,6 @@ const getAllOrders = async (page: number, limit: number) => {
     },
   };
 };
-
 
 const orderService = {
   createNewOrder,
