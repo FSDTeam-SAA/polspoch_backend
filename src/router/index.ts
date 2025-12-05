@@ -2,10 +2,11 @@ import { Router } from "express";
 import authRouter from "../modules/auth/auth.router";
 import cartRouter from "../modules/cart/cart.router";
 import contactRouter from "../modules/contact/contact.router";
+import orderRouter from "../modules/order/order.router";
+import paymentRouter from "../modules/payment/payment.router";
 import productRouter from "../modules/product/product.router";
 import serviceRouter from "../modules/service/service.router";
 import userRouter from "../modules/user/user.router";
-import orderRouter from "../modules/order/order.router";
 
 const router = Router();
 
@@ -37,6 +38,10 @@ const moduleRoutes = [
   {
     path: "/order",
     route: orderRouter,
+  },
+  {
+    path: "/payment",
+    route: paymentRouter,
   },
 ];
 
