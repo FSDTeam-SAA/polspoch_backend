@@ -46,7 +46,7 @@ export const ProductController = {
   getAllProducts: catchAsync(async (req, res) => {
     const { family, search, page, limit } = req.query
 
-    const result = await ProductService.getAllProducts({
+    const { data, meta} = await ProductService.getAllProducts({
       family: family as string,
       search: search as string,
       page: Number(page),
@@ -57,7 +57,8 @@ export const ProductController = {
       statusCode: 200,
       success: true,
       message: 'Products fetched successfully',
-      data: result,
+      data,
+      meta,
     })
   }),
 
