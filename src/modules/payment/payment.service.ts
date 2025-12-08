@@ -16,6 +16,8 @@ const createPayment = async (payload: { orderId: string }, email: string) => {
   if (!order) {
     throw new AppError("Order not found", StatusCodes.NOT_FOUND);
   }
+
+  //! not implemented: integrate with payment gateway here---------
 };
 
 const getMyPayments = async (email: string) => {
@@ -29,7 +31,10 @@ const getMyPayments = async (email: string) => {
 };
 
 const getAllPayments = async () => {
-  const result = await Payment.find({ status: "success" });
+  const result = await Payment.find({ status: "success" }).populate({
+    path: "userId",
+    select: "name email companyName",
+  });
   return result;
 };
 
