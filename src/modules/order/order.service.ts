@@ -3,7 +3,8 @@ import AppError from "../../errors/AppError";
 import Cart from "../cart/cart.model";
 import { IProductFeature } from "../product/product.interface";
 import { Product } from "../product/product.model";
-import { Service } from "../service/service.model";
+
+import Service from "../service/service.model";
 import { User } from "../user/user.model";
 import { IOrder } from "./order.interface";
 import { Order } from "./order.model";
@@ -64,13 +65,6 @@ const createNewOrder = async (payload: IOrder, email: string) => {
         StatusCodes.BAD_REQUEST
       );
     }
-
-    // ৫. totalAmount calculation
-    // if (payload.product.unitSize) {
-    //   totalAmount = quantity * featureData.miterPerUnitPrice;
-    // } else if (payload.product.range) {
-    //   totalAmount = payload.product.range * featureData.miterPerUnitPrice;
-    // }
   }
 
   // ৬. Service order
@@ -137,6 +131,20 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
         path: "product.productId",
         select:
           "productName family productImage features._id features.reference features.size1 features.size2 features.thickness features.finishQuality features.unitSizes features.kgsPerUnit features.miterPerUnitPrice",
+      })
+      .populate({
+        path: "cartItems.cartId",
+        populate: [
+          {
+            path: "productId",
+            select:
+              "productName family productImage features reference size1 size2 thickness unitSizes kgsPerUnit miterPerUnitPrice",
+          },
+          {
+            path: "serviceId",
+            // select: "serviceName serviceType unitPrice description",
+          },
+        ],
       })
       .lean(),
     Order.countDocuments({ userId: user._id }),
