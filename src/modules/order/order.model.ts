@@ -7,11 +7,6 @@ const cartItemSchema = new Schema(
       ref: "Cart",
       required: true,
     },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
   },
   { _id: false }
 );
