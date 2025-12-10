@@ -2,161 +2,198 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/cloudinary";
 import { IService } from "./service.interface";
-import { Service } from "./service.model";
+import  Service  from "./service.model";
 
-const createNewService = async (payload: IService, files: any) => {
-  let images: { public_id: string; url: string }[] = [];
-  let technicalImages: { public_id: string; url: string }[] = [];
+// const createNewService = async (payload: IService, files: any) => {
+//   let images: { public_id: string; url: string }[] = [];
+//   let technicalImages: { public_id: string; url: string }[] = [];
 
-  const serviceImages = files?.images || [];
-  const techImages = files?.technicalImages || [];
+//   const serviceImages = files?.images || [];
+//   const techImages = files?.technicalImages || [];
 
-  if (serviceImages.length > 0) {
-    const uploadResults = await Promise.all(
-      serviceImages.map((file: Express.Multer.File) =>
-        uploadToCloudinary(file.path, "services")
-      )
-    );
+//   if (serviceImages.length > 0) {
+//     const uploadResults = await Promise.all(
+//       serviceImages.map((file: Express.Multer.File) =>
+//         uploadToCloudinary(file.path, "services")
+//       )
+//     );
 
-    images = uploadResults.map((uploaded: any) => ({
-      public_id: uploaded.public_id ?? "",
-      url: uploaded.secure_url,
-    }));
-  }
+//     images = uploadResults.map((uploaded: any) => ({
+//       public_id: uploaded.public_id ?? "",
+//       url: uploaded.secure_url,
+//     }));
+//   }
 
-  if (techImages.length > 0) {
-    const techUploadResults = await Promise.all(
-      techImages.map((file: Express.Multer.File) =>
-        uploadToCloudinary(file.path, "technicalInfo")
-      )
-    );
+//   if (techImages.length > 0) {
+//     const techUploadResults = await Promise.all(
+//       techImages.map((file: Express.Multer.File) =>
+//         uploadToCloudinary(file.path, "technicalInfo")
+//       )
+//     );
 
-    technicalImages = techUploadResults.map((uploaded: any) => ({
-      public_id: uploaded.public_id ?? "",
-      url: uploaded.secure_url,
-    }));
-  }
+//     technicalImages = techUploadResults.map((uploaded: any) => ({
+//       public_id: uploaded.public_id ?? "",
+//       url: uploaded.secure_url,
+//     }));
+//   }
 
-  let technicalInfo = [];
-  if (payload.technicalInfo && payload.technicalInfo.length > 0) {
-    technicalInfo = payload.technicalInfo.map((info: any) => ({
-      ...info,
-      images: technicalImages,
-    }));
-  }
+//   let technicalInfo = [];
+//   if (payload.technicalInfo && payload.technicalInfo.length > 0) {
+//     technicalInfo = payload.technicalInfo.map((info: any) => ({
+//       ...info,
+//       images: technicalImages,
+//     }));
+//   }
 
-  const newService = await Service.create({
-    ...payload,
-    images,
-    technicalInfo,
-  });
+//   const newService = await Service.create({
+//     ...payload,
+//     images,
+//     technicalInfo,
+//   });
 
-  return newService;
-};
+//   return newService;
+// };
 
 //! pagination,searching,sorting and filtering is not completed
-const getAllServices = async () => {
-  const result = await Service.find();
-  return result;
-};
+// const getAllServices = async () => {
+//   const result = await Service.find();
+//   return result;
+// };
 
-const getSingleService = async (serviceId: string) => {
-  const existingService = await Service.findById(serviceId);
-  if (!existingService)
-    throw new AppError("Service not found", StatusCodes.NOT_FOUND);
 
-  const result = await Service.findById(serviceId);
-  return result;
-};
 
-const updateService = async (
-  payload: IService,
-  serviceId: string,
-  files: any
-) => {
-  const existingService = await Service.findById(serviceId);
-  if (!existingService)
-    throw new AppError("Service not found", StatusCodes.NOT_FOUND);
-
-  // Keep existing arrays as default
-  let images: { public_id: string; url: string }[] =
-    Array.isArray(existingService.images) ? existingService.images : [];
-  let technicalImages: { public_id: string; url: string }[] = [];
-
-  const serviceImages = files?.images || [];
-  const techImages = files?.technicalImages || [];
-
-  // ----- Upload new main service images -----
-  if (serviceImages.length > 0) {
-    // Optional: delete old ones
-    await Promise.all(images.map((img) => deleteFromCloudinary(img.public_id)));
-
-    const uploadResults = await Promise.all(
-      serviceImages.map((file: Express.Multer.File) =>
-        uploadToCloudinary(file.path, "services")
-      )
-    );
-
-    images = uploadResults.map((uploaded: any) => ({
-      public_id: uploaded.public_id ?? "",
-      url: uploaded.secure_url,
-    }));
+class ServiceService {
+  /**
+   * Create a new service (rebar, bending, or cutting)
+   * @param data - IService object
+   * @returns Created service document
+   */
+  async createService(data: IService) {
+    // You could add extra validation per serviceType here if needed
+    const service = new Service(data);
+    return await service.save();
   }
 
-  // ----- Upload new technical images -----
-  if (techImages.length > 0) {
-    const techUploadResults = await Promise.all(
-      techImages.map((file: Express.Multer.File) =>
-        uploadToCloudinary(file.path, "technicalInfo")
-      )
-    );
-
-    technicalImages = techUploadResults.map((uploaded: any) => ({
-      public_id: uploaded.public_id ?? "",
-      url: uploaded.secure_url,
-    }));
+  /**
+   * Get all services or filter by serviceType
+   * @param serviceType Optional filter
+   * @returns Array of services
+   */
+  async getServices(serviceType?: "rebar" | "bending" | "cutting") {
+    const query = serviceType ? { serviceType } : {};
+    return await Service.find(query).sort({ createdAt: -1 });
   }
 
-  // ----- Merge technical info -----
-  let updatedTechnicalInfo = existingService.technicalInfo || [];
-
-  if (payload.technicalInfo && payload.technicalInfo.length > 0) {
-    updatedTechnicalInfo = payload.technicalInfo.map(
-      (info: any, index: number) => {
-        const oldImages = existingService.technicalInfo[index]?.images || [];
-
-        return {
-          ...info,
-          images:
-            technicalImages.length > 0
-              ? technicalImages // ✅ use all new uploaded tech images
-              : oldImages, // keep old if none uploaded
-        };
-      }
-    );
+  /**
+   * Get a single service by ID
+   * @param id Service ID
+   * @returns Service document or null
+   */
+  async getServiceById(id: string) {
+    return await Service.findById(id);
   }
+}
 
-  // ----- Update the service -----
-  const updatedService = await Service.findByIdAndUpdate(
-    serviceId,
-    {
-      ...payload,
-      images, // ✅ update main images properly
-      technicalInfo: updatedTechnicalInfo, // ✅ update tech info properly
-    },
-    { new: true, runValidators: true }
-  );
-
-  return updatedService;
-};
+export default new ServiceService();
 
 
+// const getSingleService = async (serviceId: string) => {
+//   const existingService = await Service.findById(serviceId);
+//   if (!existingService)
+//     throw new AppError("Service not found", StatusCodes.NOT_FOUND);
 
-const serviceServices = {
-  createNewService,
-  getAllServices,
-  getSingleService,
-  updateService,
-};
+//   const result = await Service.findById(serviceId);
+//   return result;
+// };
 
-export default serviceServices;
+// const updateService = async (
+//   payload: IService,
+//   serviceId: string,
+//   files: any
+// ) => {
+//   const existingService = await Service.findById(serviceId);
+//   if (!existingService)
+//     throw new AppError("Service not found", StatusCodes.NOT_FOUND);
+
+//   // Keep existing arrays as default
+//   let images: { public_id: string; url: string }[] =
+//     Array.isArray(existingService.images) ? existingService.images : [];
+//   let technicalImages: { public_id: string; url: string }[] = [];
+
+//   const serviceImages = files?.images || [];
+//   const techImages = files?.technicalImages || [];
+
+//   // ----- Upload new main service images -----
+//   if (serviceImages.length > 0) {
+//     // Optional: delete old ones
+//     await Promise.all(images.map((img) => deleteFromCloudinary(img.public_id)));
+
+//     const uploadResults = await Promise.all(
+//       serviceImages.map((file: Express.Multer.File) =>
+//         uploadToCloudinary(file.path, "services")
+//       )
+//     );
+
+//     images = uploadResults.map((uploaded: any) => ({
+//       public_id: uploaded.public_id ?? "",
+//       url: uploaded.secure_url,
+//     }));
+//   }
+
+//   // ----- Upload new technical images -----
+//   if (techImages.length > 0) {
+//     const techUploadResults = await Promise.all(
+//       techImages.map((file: Express.Multer.File) =>
+//         uploadToCloudinary(file.path, "technicalInfo")
+//       )
+//     );
+
+//     technicalImages = techUploadResults.map((uploaded: any) => ({
+//       public_id: uploaded.public_id ?? "",
+//       url: uploaded.secure_url,
+//     }));
+//   }
+
+//   // ----- Merge technical info -----
+//   let updatedTechnicalInfo = existingService.technicalInfo || [];
+
+//   if (payload.technicalInfo && payload.technicalInfo.length > 0) {
+//     updatedTechnicalInfo = payload.technicalInfo.map(
+//       (info: any, index: number) => {
+//         const oldImages = existingService.technicalInfo[index]?.images || [];
+
+//         return {
+//           ...info,
+//           images:
+//             technicalImages.length > 0
+//               ? technicalImages // ✅ use all new uploaded tech images
+//               : oldImages, // keep old if none uploaded
+//         };
+//       }
+//     );
+//   }
+
+//   // ----- Update the service -----
+//   const updatedService = await Service.findByIdAndUpdate(
+//     serviceId,
+//     {
+//       ...payload,
+//       images, // ✅ update main images properly
+//       technicalInfo: updatedTechnicalInfo, // ✅ update tech info properly
+//     },
+//     { new: true, runValidators: true }
+//   );
+
+//   return updatedService;
+// };
+
+
+
+// const serviceServices = {
+//   createNewService,
+//   // getAllServices,
+//   // getSingleService,
+//   // updateService,
+// };
+
+// export default serviceServices;

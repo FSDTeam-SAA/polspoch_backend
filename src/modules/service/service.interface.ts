@@ -1,42 +1,28 @@
+import { Types } from "mongoose";
+
 export interface IService {
-  serviceName: string;
-  description: string;
-  images: {
-    public_id: string;
-    url: string;
-  };
+  serviceType: "rebar" | "bending" | "cutting"; // Type of service
+
+  // Common fields
+ userId?: Types.ObjectId;
+  templateName?: string; // Optional template name
+  units?: number;
   price?: number;
-  material: string[];
-  thickness: number[];
-  aLength?: string;
-  bLength?: string;
-  cLength?: string;
-  dLength?: string;
-  eLength?: string;
-  fLength?: string;
-  // degrees: {
-  //   degree1: string;
-  //   degree2: string;
 
-  // }
+  // Rebar-specific
+  diameter?: number;
+  sizes?: { [key: string]: number }; // Flexible object, keys like A, B, C, D
 
-  serviceInfo: {
-    title: string;
-    description: string;
-  }[];
+  // Bending-specific
+  thickness?: number;
+  material?: string;
+  degrees?: { [key: string]: number }; // degree1, degree2
+  length?: number;
 
-  technicalInfo: {
-    title?: string;
-    minimumDimension?: string;
-    thickness?: string;
-    look?: string;
-    application?: string;
-    defect?: string;
-    reference?: string;
-    technicalSheet?: string;
-    images?: {
-      public_id: string;
-      url: string;
-    }[];
-  }[];
+  // Cutting-specific
+  internalCuts?: number;
+  size?: number;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }

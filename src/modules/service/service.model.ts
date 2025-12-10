@@ -1,84 +1,47 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 import { IService } from "./service.interface";
 
-const ServiceSchema = new Schema<IService>(
-  {
-    serviceName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-    },
-    images: [
-      {
-        public_id: { type: String, required: true },
-        url: { type: String, required: true },
-      },
-    ],
-    price: {
-      type: Number,
-      required: true,
-    },
-    material: {
-      type: [String],
-      default: [],
-    },
-    thickness: {
-      type: [Number],
-      default: [],
-    },
-    aLength: {
-      type: String,
-      trim: true,
-    },
-    bLength: {
-      type: String,
-      trim: true,
-    },
-    cLength: {
-      type: String,
-      trim: true,
-    },
-    dLength: {
-      type: String,
-      trim: true,
-    },
-    eLength: {
-      type: String,
-      trim: true,
-    },
-    fLength: {
-      type: String,
-      trim: true,
-    },
-    serviceInfo: [
-      {
-        title: { type: String, trim: true },
-        description: { type: String },
-      },
-    ],
-    technicalInfo: [
-      {
-        title: { type: String, trim: true },
-        maximumDimension: { type: String, trim: true },
-        thickness: { type: String, trim: true },
-        look: { type: String, trim: true },
-        application: { type: String, trim: true },
-        defect: { type: String, trim: true },
-        reference: { type: String, trim: true },
-        technicalSheet: { type: String, trim: true },
-        images: [
-          {
-            public_id: { type: String, required: true },
-            url: { type: String, required: true },
-          },
-        ],
-      },
-    ],
-  },
-  { timestamps: true, versionKey: false }
-);
+const ServiceSchema = new Schema<IService>({
 
-export const Service = model<IService>("Service", ServiceSchema);
+  serviceType: { 
+    type: String, 
+    required: true, 
+    enum: ["rebar", "bending", "cutting"] 
+  },
+  userId: { 
+    type: Schema.Types.ObjectId, 
+    ref: "User", 
+    required: true 
+  },
+  // Common fields
+  templateName: { type: String },
+  units: { type: Number },
+  price: { type: Number },
+
+  // Rebar-specific
+  diameter: { type: Number },
+  sizes: { type: Schema.Types.Mixed, default: {} }, // Flexible object for sizes A, B, C, D
+
+  // Bending-specific
+  thickness: { type: Number },
+  material: { type: String },
+  degrees: { type: Schema.Types.Mixed, default: {} }, // degree1, degree2
+  length: { type: Number },
+
+  // Cutting-specific
+  internalCuts: { type: Number },
+  size: { type: Number },
+
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+// Middleware to update updatedAt automatically
+ServiceSchema.pre("save", function (next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+const Service = model<IService>("Service", ServiceSchema);
+
+export default Service;
