@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+import AppError from "../../errors/AppError";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import cartService from "./cart.service";
@@ -32,6 +33,21 @@ const getMyCart = catchAsync(async (req, res) => {
   });
 });
 
+const increaseQuantity = catchAsync(async (req, res) => {
+  throw new AppError("There some logic error i can't handle", StatusCodes.NOT_FOUND);
+
+  const { email } = req.user;
+  const { cartId } = req.params;
+  const cart = await cartService.increaseQuantity(email, cartId);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Cart quantity increased successfully",
+    data: cart,
+  });
+});
+
 const deletedCart = catchAsync(async (req, res) => {
   const { email } = req.user;
   const { cartId } = req.params;
@@ -47,6 +63,7 @@ const deletedCart = catchAsync(async (req, res) => {
 const cartController = {
   addToCart,
   getMyCart,
+  increaseQuantity,
   deletedCart,
 };
 
