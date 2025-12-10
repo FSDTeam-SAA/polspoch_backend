@@ -8,6 +8,12 @@ const router = Router();
 router.post("/add-cart", auth(USER_ROLE.USER), cartController.addToCart);
 router.get("/my-cart", auth(USER_ROLE.USER), cartController.getMyCart);
 
+router.put(
+  "/increase-quantity/:cartId",
+  auth(USER_ROLE.USER),
+  cartController.increaseQuantity
+);
+
 router.delete(
   "/delete-cart/:cartId",
   auth(USER_ROLE.USER),

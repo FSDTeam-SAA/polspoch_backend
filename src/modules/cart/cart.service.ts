@@ -1,13 +1,14 @@
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 import { Product } from "../product/product.model";
-import { Service } from "../service/service.model";
+import Service from "../service/service.model";
 import { User } from "../user/user.model";
 import { ICart } from "./cart.interface";
 import Cart from "./cart.model";
 
 const addToCart = async (payload: ICart, email: string) => {
   const { productId, serviceId, quantity = 1, type, userId } = payload;
+  console.log(payload);
 
   if (type === "product") {
     const isUserExist = await User.findOne({ email });
@@ -56,7 +57,6 @@ const addToCart = async (payload: ICart, email: string) => {
     const result = await Cart.create({
       userId: isUserExist._id,
       serviceId,
-      quantity,
       type,
     });
 
@@ -77,11 +77,11 @@ const getMyCart = async (email: string, page: number, limit: number) => {
     })
     .populate({
       path: "productId",
-      select: "productName images price",
+      select: "productName productImage price",
     })
     .populate({
       path: "serviceId",
-      select: "serviceName images price",
+      select: "-__v -createdAt -updatedAt",
     })
     .skip(skip)
     .limit(limit)
@@ -100,6 +100,23 @@ const getMyCart = async (email: string, page: number, limit: number) => {
   };
 };
 
+const increaseQuantity = async (email: string, cartId: string) => {
+  const isUserExist = await User.findOne({ email });
+  if (!isUserExist) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+
+  const isCartExist = await Cart.findById(cartId);
+  if (!isCartExist) throw new AppError("Cart not found", StatusCodes.NOT_FOUND);
+
+  const updatedCart = await Cart.findByIdAndUpdate(
+    cartId,
+    { $inc: { quantity: 1 } },
+    { new: true }
+  );
+
+
+  return updatedCart;
+};
+
 const deletedCart = async (email: string, cartId: string) => {
   const isUserExist = await User.findOne({ email });
   if (!isUserExist) throw new AppError("User not found", StatusCodes.NOT_FOUND);
@@ -114,6 +131,7 @@ const cartService = {
   addToCart,
   getMyCart,
   deletedCart,
+  increaseQuantity,
 };
 
 export default cartService;
