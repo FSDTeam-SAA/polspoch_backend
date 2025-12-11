@@ -156,7 +156,6 @@ const getMyCart = async (email: string, page: number, limit: number) => {
   };
 };
 
-
 const increaseQuantity = async (email: string, cartId: string) => {
   const isUserExist = await User.findOne({ email });
   if (!isUserExist) throw new AppError("User not found", StatusCodes.NOT_FOUND);

@@ -118,10 +118,12 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
   const user = await User.isUserExistByEmail(email);
   if (!user) throw new AppError("User not found", 404);
 
+  const skip = (page - 1) * limit;
+
   const [orders, totalOrders] = await Promise.all([
     Order.find({ userId: user._id })
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
+      .skip(skip)
       .limit(limit)
       .populate({
         path: "userId",
@@ -129,45 +131,97 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
       })
       .populate({
         path: "product.productId",
-        select:
-          "productName family productImage features._id features.reference features.size1 features.size2 features.thickness features.finishQuality features.unitSizes features.kgsPerUnit features.miterPerUnitPrice",
+        model: "Product",
       })
       .populate({
         path: "serviceId",
-        // select: "serviceName serviceType unitPrice description",
+        model: "Service",
       })
       .populate({
         path: "cartItems.cartId",
+        model: "Cart",
         populate: [
-          {
-            path: "productId",
-            select:
-              "productName family productImage features reference size1 size2 thickness unitSizes kgsPerUnit miterPerUnitPrice",
-          },
-          {
-            path: "serviceId",
-            // select: "serviceName serviceType unitPrice description",
-          },
+          { path: "serviceId", model: "Service" },
+          { path: "product.productId", model: "Product" },
         ],
       })
       .lean(),
+
     Order.countDocuments({ userId: user._id }),
   ]);
 
-  const ordersWithFeature = orders.map((order: any) => {
-    const product = order?.product?.productId as any;
-    const featuredId = order?.product?.featuredId;
-    if (product && featuredId) {
-      order.product.featuredData =
-        (product.features || []).find(
-          (f: any) => f._id.toString() === featuredId.toString()
-        ) || null;
+  /*
+  ─────────────────────────────────────────────
+      FORMAT ORDER + FEATURE LOGIC
+  ─────────────────────────────────────────────
+  */
+
+  const formattedOrders = orders.map((order: any) => {
+    /*
+    --------------------------------
+      DIRECT PRODUCT ORDER
+    --------------------------------
+    */
+    if (order.product?.productId) {
+      const productDoc = order.product.productId;
+      const featuredId = order.product.featuredId;
+
+      if (productDoc?.features?.length) {
+        const matchedFeature = productDoc.features.find(
+          (f: any) => f._id.toString() === featuredId?.toString()
+        );
+
+        order.product.selectedFeature = matchedFeature || null;
+        delete order.product.productId.features;
+      }
     }
+
+    /*
+    --------------------------------
+      CART ORDER
+    --------------------------------
+    */
+    if (order.type === "cart" && order.cartItems?.length > 0) {
+      order.cartItems = order.cartItems.map((item: any) => {
+        const cartItem = item.cartId;
+        if (!cartItem) return item;
+
+        // SERVICE INSIDE CART
+        if (cartItem.type === "service" && cartItem.serviceId) {
+          cartItem.service = cartItem.serviceId;
+          delete cartItem.serviceId;
+        }
+
+        // PRODUCT INSIDE CART
+        if (cartItem.type === "product" && cartItem.product) {
+          const productDoc = cartItem.product.productId;
+          const featuredId = cartItem.product.featuredId;
+
+          if (productDoc?.features?.length) {
+            const matchedFeature = productDoc.features.find(
+              (f: any) => f._id.toString() === featuredId?.toString()
+            );
+
+            cartItem.product.selectedFeature = matchedFeature || null;
+            delete cartItem.product.productId.features;
+          }
+        }
+
+        return { cartId: cartItem };
+      });
+    }
+
     return order;
   });
 
+  /*
+  ─────────────────────────────────────────────
+      FINAL RESPONSE
+  ─────────────────────────────────────────────
+  */
+
   return {
-    data: ordersWithFeature,
+    data: formattedOrders,
     meta: {
       total: totalOrders,
       page,
@@ -177,12 +231,15 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
   };
 };
 
+
 const getAllOrders = async (page: number, limit: number) => {
-  // Fetch orders and total count in parallel
+  const skip = (page - 1) * limit;
+
+  // Fetch orders and count
   const [orders, totalOrders] = await Promise.all([
     Order.find()
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
+      .skip(skip)
       .limit(limit)
       .populate({
         path: "userId",
@@ -190,52 +247,103 @@ const getAllOrders = async (page: number, limit: number) => {
       })
       .populate({
         path: "product.productId",
-        select:
-          "productName family productImage features._id features.reference features.size1 features.size2 features.thickness features.finishQuality features.unitSizes features.kgsPerUnit features.miterPerUnitPrice",
+        model: "Product",
       })
       .populate({
         path: "serviceId",
-        // select: "serviceName serviceType unitPrice description",
+        model: "Service",
       })
       .populate({
         path: "cartItems.cartId",
+        model: "Cart",
         populate: [
-          {
-            path: "productId",
-            select:
-              "productName family productImage features reference size1 size2 thickness unitSizes kgsPerUnit miterPerUnitPrice",
-          },
-          {
-            path: "serviceId",
-            // select: "serviceName serviceType unitPrice description",
-          },
+          { path: "serviceId", model: "Service" },
+          { path: "product.productId", model: "Product" },
         ],
       })
       .lean(),
+
     Order.countDocuments(),
   ]);
 
-  // Manual populate featuredData for each order
-  const ordersWithFeature = orders.map((order: any) => {
-    const product = order?.product?.productId as any;
-    const featuredId = order?.product?.featuredId;
+  /*
+  ─────────────────────────────────────────────
+      FORMAT + ADD SELECTED FEATURE
+  ─────────────────────────────────────────────
+  */
 
-    if (product && featuredId) {
-      order.product.featuredData =
-        (product.features || []).find(
-          (f: any) => f._id.toString() === featuredId.toString()
-        ) || null;
+  const formattedOrders = orders.map((order: any) => {
+    /*
+    --------------------------------
+    DIRECT PRODUCT ORDER
+    --------------------------------
+    */
+    if (order.product?.productId) {
+      const productDoc = order.product.productId;
+      const featuredId = order.product.featuredId;
+
+      if (productDoc?.features?.length) {
+        const matchedFeature = productDoc.features.find(
+          (f: any) => f._id.toString() === featuredId?.toString()
+        );
+
+        order.product.selectedFeature = matchedFeature || null;
+
+        // Clean big list
+        delete order.product.productId.features;
+      }
+    }
+
+    /*
+    --------------------------------
+      CART ORDER
+    --------------------------------
+    */
+    if (order.type === "cart" && order.cartItems?.length > 0) {
+      order.cartItems = order.cartItems.map((item: any) => {
+        const cartItem = item.cartId;
+        if (!cartItem) return item;
+
+        // SERVICE INSIDE CART
+        if (cartItem.type === "service" && cartItem.serviceId) {
+          cartItem.service = cartItem.serviceId;
+          delete cartItem.serviceId;
+        }
+
+        // PRODUCT INSIDE CART
+        if (cartItem.type === "product" && cartItem.product) {
+          const productDoc = cartItem.product.productId;
+          const featuredId = cartItem.product.featuredId;
+
+          if (productDoc?.features?.length) {
+            const matchedFeature = productDoc.features.find(
+              (f: any) => f._id.toString() === featuredId?.toString()
+            );
+
+            cartItem.product.selectedFeature = matchedFeature || null;
+
+            // Clean big list
+            delete cartItem.product.productId.features;
+          }
+        }
+
+        return { cartId: cartItem };
+      });
     }
 
     return order;
   });
 
-  // Return optimized response
+  /*
+  ─────────────────────────────────────────────
+      FINAL RESPONSE
+  ─────────────────────────────────────────────
+  */
   return {
     success: true,
-    message: "Orders get successfully",
+    message: "Orders retrieved successfully",
     statusCode: 200,
-    data: ordersWithFeature, // only array
+    data: formattedOrders,
     meta: {
       total: totalOrders,
       page,
@@ -244,6 +352,7 @@ const getAllOrders = async (page: number, limit: number) => {
     },
   };
 };
+
 
 const orderService = {
   createNewOrder,
