@@ -3,7 +3,6 @@ import AppError from "../../errors/AppError";
 import Cart from "../cart/cart.model";
 import { IProductFeature } from "../product/product.interface";
 import { Product } from "../product/product.model";
-
 import Service from "../service/service.model";
 import { User } from "../user/user.model";
 import { IOrder } from "./order.interface";
@@ -231,7 +230,6 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
   };
 };
 
-
 const getAllOrders = async (page: number, limit: number) => {
   const skip = (page - 1) * limit;
 
@@ -353,11 +351,27 @@ const getAllOrders = async (page: number, limit: number) => {
   };
 };
 
+const updateOrderStatus = async (orderId: string, status: string) => {
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw new AppError("Order not found", StatusCodes.NOT_FOUND);
+  }
+
+  if (order.paymentStatus !== "paid") {
+    throw new AppError(
+      "Cannot update status of unpaid order",
+      StatusCodes.BAD_REQUEST
+    );
+  }
+
+  await Order.findByIdAndUpdate(orderId, { status }, { new: true });
+};
 
 const orderService = {
   createNewOrder,
   getMyOrders,
   getAllOrders,
+  updateOrderStatus,
 };
 
 export default orderService;
