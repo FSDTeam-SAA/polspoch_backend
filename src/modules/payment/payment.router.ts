@@ -14,8 +14,13 @@ router.get(
 
 router.get(
   "/all-payments",
-  auth(USER_ROLE.ADMIN),
+  // auth(USER_ROLE.ADMIN),
   paymentController.getAllPayments
+);
+router.get(
+  "/:paymentId",
+  // auth(USER_ROLE.ADMIN),
+  paymentController.getSinglePayment
 );
 
 const paymentRouter = router;

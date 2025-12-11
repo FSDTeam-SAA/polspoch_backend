@@ -1,10 +1,28 @@
-import { model, Schema } from "mongoose";
+import { model, Schema, Types } from "mongoose";
 import { ICart } from "./cart.interface";
 
 const cartModel = new Schema<ICart>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User" },
-    productId: { type: Schema.Types.ObjectId, ref: "Product" },
+    product: {
+      productId: {
+        type: Types.ObjectId,
+        ref: "Product",
+      },
+      featuredId: {
+        type: Types.ObjectId,
+        ref: "Product",
+      },
+      size: {
+        type: Number,
+      },
+      unitSize: {
+        type: Number,
+      },
+      range: {
+        type: Number,
+      },
+    },
     serviceId: { type: Schema.Types.ObjectId, ref: "Service" },
     type: { type: String },
     quantity: { type: Number },
@@ -12,8 +30,6 @@ const cartModel = new Schema<ICart>(
   },
   { timestamps: true, versionKey: false }
 );
-
-
 
 const Cart = model<ICart>("Cart", cartModel);
 
