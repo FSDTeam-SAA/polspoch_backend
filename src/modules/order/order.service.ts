@@ -133,6 +133,10 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
           "productName family productImage features._id features.reference features.size1 features.size2 features.thickness features.finishQuality features.unitSizes features.kgsPerUnit features.miterPerUnitPrice",
       })
       .populate({
+        path: "serviceId",
+        // select: "serviceName serviceType unitPrice description",
+      })
+      .populate({
         path: "cartItems.cartId",
         populate: [
           {
@@ -188,6 +192,24 @@ const getAllOrders = async (page: number, limit: number) => {
         path: "product.productId",
         select:
           "productName family productImage features._id features.reference features.size1 features.size2 features.thickness features.finishQuality features.unitSizes features.kgsPerUnit features.miterPerUnitPrice",
+      })
+      .populate({
+        path: "serviceId",
+        // select: "serviceName serviceType unitPrice description",
+      })
+      .populate({
+        path: "cartItems.cartId",
+        populate: [
+          {
+            path: "productId",
+            select:
+              "productName family productImage features reference size1 size2 thickness unitSizes kgsPerUnit miterPerUnitPrice",
+          },
+          {
+            path: "serviceId",
+            // select: "serviceName serviceType unitPrice description",
+          },
+        ],
       })
       .lean(),
     Order.countDocuments(),

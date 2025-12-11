@@ -28,4 +28,10 @@ export default {
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   },
+
+  stripe: {
+    frontend_success_url: process.env.FRONTEND_URL_SUCCESS,
+    frontend_cancel_url: process.env.FRONTEND_URL_CANCEL,
+    stripe_secret_key: process.env.STRIPE_SECRET_KEY,
+  },
 };
