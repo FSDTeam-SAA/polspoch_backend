@@ -7,19 +7,31 @@ import { ICart } from "./cart.interface";
 import Cart from "./cart.model";
 
 const addToCart = async (payload: ICart, email: string) => {
-  const { productId, serviceId, quantity = 1, type, userId } = payload;
-  console.log(payload);
+  const { product, serviceId, quantity = 1, type } = payload;
 
+  // Validate user
+  const user = await User.findOne({ email });
+  if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+
+  // -------------------------------------------------------
+  // 🟦 ADD PRODUCT TO CART
+  // -------------------------------------------------------
   if (type === "product") {
-    const isUserExist = await User.findOne({ email });
-    if (!isUserExist)
-      throw new AppError("User not found", StatusCodes.NOT_FOUND);
+    if (!product?.productId) {
+      throw new AppError("Product ID missing", StatusCodes.BAD_REQUEST);
+    }
 
-    const isProductExist = await Product.findById(productId);
-    if (!isProductExist)
+    const isProductExist = await Product.findById(product.productId);
+    if (!isProductExist) {
       throw new AppError("Product not found", StatusCodes.NOT_FOUND);
+    }
 
-    const existingCart = await Cart.findOne({ userId, productId });
+    // Check if product already in cart
+    const existingCart = await Cart.findOne({
+      userId: user._id,
+      "product.productId": product.productId,
+    });
+
     if (existingCart) {
       await Cart.findByIdAndUpdate(existingCart._id, {
         $inc: { quantity },
@@ -27,26 +39,42 @@ const addToCart = async (payload: ICart, email: string) => {
       return { message: "Product quantity updated in cart" };
     }
 
-    const result = await Cart.create({
-      userId: isUserExist._id,
-      productId,
+    // Create new cart item
+    const newCart = await Cart.create({
+      userId: user._id,
+      product: {
+        productId: product.productId,
+        featuredId: product.featuredId,
+        size: product.size,
+        unitSize: product.unitSize,
+        range: product.range,
+      },
       quantity,
-      type,
+      type: "product",
     });
 
-    return result;
+    return newCart;
   }
 
+  // -------------------------------------------------------
+  // 🟩 ADD SERVICE TO CART
+  // -------------------------------------------------------
   if (type === "service") {
-    const isUserExist = await User.findOne({ email });
-    if (!isUserExist)
-      throw new AppError("User not found", StatusCodes.NOT_FOUND);
+    if (!serviceId) {
+      throw new AppError("Service ID missing", StatusCodes.BAD_REQUEST);
+    }
 
     const isServiceExist = await Service.findById(serviceId);
-    if (!isServiceExist)
+    if (!isServiceExist) {
       throw new AppError("Service not found", StatusCodes.NOT_FOUND);
+    }
 
-    const existingCart = await Cart.findOne({ userId, serviceId });
+    // Check if already added
+    const existingCart = await Cart.findOne({
+      userId: user._id,
+      serviceId,
+    });
+
     if (existingCart) {
       await Cart.findByIdAndUpdate(existingCart._id, {
         $inc: { quantity },
@@ -54,30 +82,32 @@ const addToCart = async (payload: ICart, email: string) => {
       return { message: "Service quantity updated in cart" };
     }
 
-    const result = await Cart.create({
-      userId: isUserExist._id,
+    const newCart = await Cart.create({
+      userId: user._id,
       serviceId,
-      type,
+      type: "service",
+      quantity,
     });
 
-    return result;
+    return newCart;
   }
+
+  throw new AppError("Invalid cart type", StatusCodes.BAD_REQUEST);
 };
 
 const getMyCart = async (email: string, page: number, limit: number) => {
-  const isUserExist = await User.findOne({ email });
-  if (!isUserExist) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+  const user = await User.findOne({ email });
+  if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
 
   const skip = (page - 1) * limit;
 
-  const carts = await Cart.find({ userId: isUserExist._id })
+  const carts = await Cart.find({ userId: user._id })
     .populate({
       path: "userId",
       select: "firstName lastName",
     })
     .populate({
-      path: "productId",
-      select: "productName productImage price",
+      path: "product.productId",
     })
     .populate({
       path: "serviceId",
@@ -87,10 +117,36 @@ const getMyCart = async (email: string, page: number, limit: number) => {
     .limit(limit)
     .sort({ createdAt: -1 });
 
-  const total = await Cart.countDocuments({ userId: isUserExist._id });
+  // Convert mongoose docs to JSON
+  const cleanCarts = JSON.parse(JSON.stringify(carts));
+
+  // Add selectedFeature logic
+  const formatted = cleanCarts.map((cart: any) => {
+    if (cart.type === "product" && cart.product) {
+      const productDoc = cart.product.productId;
+      const featuredId = cart.product.featuredId;
+
+      if (productDoc && featuredId && productDoc.features) {
+        // Find matched feature
+        const matchedFeature = productDoc.features.find(
+          (f: any) => f._id === featuredId
+        );
+
+        // Add selectedFeature
+        cart.product.selectedFeature = matchedFeature || null;
+
+        // Remove full features array
+        delete cart.product.productId.features;
+      }
+    }
+
+    return cart;
+  });
+
+  const total = await Cart.countDocuments({ userId: user._id });
 
   return {
-    data: carts,
+    data: formatted,
     meta: {
       total,
       page,
@@ -99,6 +155,7 @@ const getMyCart = async (email: string, page: number, limit: number) => {
     },
   };
 };
+
 
 const increaseQuantity = async (email: string, cartId: string) => {
   const isUserExist = await User.findOne({ email });
@@ -112,7 +169,6 @@ const increaseQuantity = async (email: string, cartId: string) => {
     { $inc: { quantity: 1 } },
     { new: true }
   );
-
 
   return updatedCart;
 };

@@ -74,22 +74,226 @@ const getMyPayments = async (email: string) => {
     throw new AppError("User not found", StatusCodes.NOT_FOUND);
   }
 
-  const result = await Payment.find({ userId: user._id });
+  const result = await Payment.find({ userId: user._id }).populate({
+    path: "orderId",
+    populate: [
+      {
+        path: "product.productId",
+        model: "Product",
+        select: "productName price",
+      },
+      { path: "serviceId", model: "Service" },
+      {
+        path: "cartItems.cartId",
+        model: "Cart",
+        populate: [
+          { path: "serviceId", model: "Service" },
+          {
+            path: "product.productId",
+            model: "Product",
+            select: "productName price",
+          },
+        ],
+      },
+    ],
+  });
+
   return result;
 };
 
 const getAllPayments = async () => {
-  const result = await Payment.find({ status: "success" }).populate({
-    path: "userId",
-    select: "name email companyName",
+  const payments = await Payment.find({ status: "success" })
+    .populate({
+      path: "userId",
+      select: "name email companyName",
+    })
+    .populate({
+      path: "orderId",
+      populate: [
+        { path: "product.productId", model: "Product" },
+        { path: "serviceId", model: "Service" },
+        {
+          path: "cartItems.cartId",
+          model: "Cart",
+          populate: [
+            { path: "serviceId", model: "Service" },
+            { path: "product.productId", model: "Product" },
+          ],
+        },
+      ],
+    });
+
+  const result = payments.map((payment: any) => {
+    const p = JSON.parse(JSON.stringify(payment));
+    const order = p.orderId;
+    if (!order) return p;
+
+    /*
+    ─────────────────────────────────────
+      HANDLE DIRECT ORDER PRODUCT (NOT CART)
+    ─────────────────────────────────────
+    */
+    if (order.product?.productId) {
+      const productDoc = order.product.productId;
+      const featuredId = order.product.featuredId;
+
+      if (productDoc?.features?.length) {
+        const matchedFeature = productDoc.features.find(
+          (f: any) => f._id === featuredId
+        );
+
+        order.product.selectedFeature = matchedFeature || null;
+        delete order.product.productId.features;
+      }
+    }
+
+    /*
+    ─────────────────────────────────────
+      HANDLE CART ITEMS
+    ─────────────────────────────────────
+    */
+    if (order.type === "cart" && order.cartItems?.length > 0) {
+      order.cartItems = order.cartItems.map((item: any) => {
+        const cartItem = item.cartId;
+        if (!cartItem) return item;
+
+        /*
+        -------- SERVICE CART ITEM --------
+        */
+        if (cartItem.type === "service" && cartItem.serviceId) {
+          cartItem.service = cartItem.serviceId;
+          delete cartItem.serviceId;
+        }
+
+        /*
+        -------- PRODUCT CART ITEM --------
+        */
+        if (cartItem.type === "product" && cartItem.product) {
+          const productDoc = cartItem.product.productId;
+          const featuredId = cartItem.product.featuredId;
+
+          if (productDoc?.features?.length) {
+            const matchedFeature = productDoc.features.find(
+              (f: any) => f._id === featuredId
+            );
+
+            cartItem.product.selectedFeature = matchedFeature || null;
+
+            // remove all features except selectedFeature
+            delete cartItem.product.productId.features;
+          }
+        }
+
+        // Return cleaned structure (No duplicates!)
+        return { cartId: cartItem };
+      });
+    }
+
+    return p;
   });
+
   return result;
 };
+
+const getSinglePayment = async (paymentId: string) => {
+  const payment = await Payment.findById(paymentId)
+    .populate({
+      path: "userId",
+      select: "name email companyName",
+    })
+    .populate({
+      path: "orderId",
+      populate: [
+        { path: "product.productId", model: "Product" },
+        { path: "serviceId", model: "Service" },
+        {
+          path: "cartItems.cartId",
+          model: "Cart",
+          populate: [
+            { path: "serviceId", model: "Service" },
+            { path: "product.productId", model: "Product" },
+          ],
+        },
+      ],
+    });
+
+  if (!payment) return null;
+
+  // Convert doc → plain object
+  const p = JSON.parse(JSON.stringify(payment));
+  const order = p.orderId;
+
+  if (!order) return p;
+
+  /*
+  ─────────────────────────────────────
+    DIRECT ORDER PRODUCT
+  ─────────────────────────────────────
+  */
+  if (order.product?.productId) {
+    const productDoc = order.product.productId;
+    const featuredId = order.product.featuredId;
+
+    if (productDoc?.features?.length) {
+      const matchedFeature = productDoc.features.find(
+        (f: any) => f._id === featuredId
+      );
+
+      order.product.selectedFeature = matchedFeature || null;
+      delete order.product.productId.features;
+    }
+  }
+
+  /*
+  ─────────────────────────────────────
+    CART ITEMS
+  ─────────────────────────────────────
+  */
+  if (order.type === "cart" && order.cartItems?.length > 0) {
+    order.cartItems = order.cartItems.map((item: any) => {
+      const cartItem = item.cartId;
+      if (!cartItem) return item;
+
+      /*
+      ------- SERVICE -------
+      */
+      if (cartItem.type === "service" && cartItem.serviceId) {
+        cartItem.service = cartItem.serviceId;
+        delete cartItem.serviceId;
+      }
+
+      /*
+      ------- PRODUCT -------
+      */
+      if (cartItem.type === "product" && cartItem.product) {
+        const productDoc = cartItem.product.productId;
+        const featuredId = cartItem.product.featuredId;
+
+        if (productDoc?.features?.length) {
+          const matchedFeature = productDoc.features.find(
+            (f: any) => f._id === featuredId
+          );
+
+          cartItem.product.selectedFeature = matchedFeature || null;
+
+          // keep only selected feature
+          delete cartItem.product.productId.features;
+        }
+      }
+
+      return { cartId: cartItem }; // cleaned return
+    });
+  }
+
+  return p;
+};
+
 
 const paymentService = {
   createPayment,
   getMyPayments,
   getAllPayments,
+  getSinglePayment,
 };
 
 export default paymentService;
