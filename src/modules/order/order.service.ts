@@ -230,27 +230,54 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
   };
 };
 
-const getAllOrders = async (page: number, limit: number) => {
+const getAllOrders = async (
+  page: number,
+  limit: number,
+  search?: string,
+  status?: string,
+  paymentStatus?: string,
+  sortBy?: "paid" | "unpaid"
+) => {
   const skip = (page - 1) * limit;
 
-  // Fetch orders and count
+  const query: any = {};
+
+  if (status && ["pending", "delivered", "rejected"].includes(status)) {
+    query.status = status;
+  }
+
+  if (paymentStatus && ["paid", "unpaid"].includes(paymentStatus)) {
+    query.paymentStatus = paymentStatus;
+  }
+
+  if (search) {
+    const users = await User.find({
+      $or: [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+      ],
+    }).select("_id");
+
+    const userIds = users.map((u) => u._id);
+    query.userId = { $in: userIds };
+  }
+
+  const sortOptions: any = {};
+  if (sortBy === "paid") sortOptions.paymentStatus = 1;
+  else if (sortBy === "unpaid") sortOptions.paymentStatus = -1;
+  else sortOptions.createdAt = -1;
+
   const [orders, totalOrders] = await Promise.all([
-    Order.find()
-      .sort({ createdAt: -1 })
+    Order.find(query)
+      .sort(sortOptions)
       .skip(skip)
       .limit(limit)
       .populate({
         path: "userId",
         select: "firstName lastName email companyName",
       })
-      .populate({
-        path: "product.productId",
-        model: "Product",
-      })
-      .populate({
-        path: "serviceId",
-        model: "Service",
-      })
+      .populate({ path: "product.productId", model: "Product" })
+      .populate({ path: "serviceId", model: "Service" })
       .populate({
         path: "cartItems.cartId",
         model: "Cart",
@@ -261,21 +288,10 @@ const getAllOrders = async (page: number, limit: number) => {
       })
       .lean(),
 
-    Order.countDocuments(),
+    Order.countDocuments(query),
   ]);
 
-  /*
-  ─────────────────────────────────────────────
-      FORMAT + ADD SELECTED FEATURE
-  ─────────────────────────────────────────────
-  */
-
   const formattedOrders = orders.map((order: any) => {
-    /*
-    --------------------------------
-    DIRECT PRODUCT ORDER
-    --------------------------------
-    */
     if (order.product?.productId) {
       const productDoc = order.product.productId;
       const featuredId = order.product.featuredId;
@@ -286,29 +302,23 @@ const getAllOrders = async (page: number, limit: number) => {
         );
 
         order.product.selectedFeature = matchedFeature || null;
-
-        // Clean big list
         delete order.product.productId.features;
       }
     }
 
-    /*
-    --------------------------------
-      CART ORDER
-    --------------------------------
-    */
+    // Cart orders
     if (order.type === "cart" && order.cartItems?.length > 0) {
       order.cartItems = order.cartItems.map((item: any) => {
         const cartItem = item.cartId;
         if (!cartItem) return item;
 
-        // SERVICE INSIDE CART
+        // Service inside cart
         if (cartItem.type === "service" && cartItem.serviceId) {
           cartItem.service = cartItem.serviceId;
           delete cartItem.serviceId;
         }
 
-        // PRODUCT INSIDE CART
+        // Product inside cart
         if (cartItem.type === "product" && cartItem.product) {
           const productDoc = cartItem.product.productId;
           const featuredId = cartItem.product.featuredId;
@@ -319,8 +329,6 @@ const getAllOrders = async (page: number, limit: number) => {
             );
 
             cartItem.product.selectedFeature = matchedFeature || null;
-
-            // Clean big list
             delete cartItem.product.productId.features;
           }
         }
@@ -332,11 +340,6 @@ const getAllOrders = async (page: number, limit: number) => {
     return order;
   });
 
-  /*
-  ─────────────────────────────────────────────
-      FINAL RESPONSE
-  ─────────────────────────────────────────────
-  */
   return {
     success: true,
     message: "Orders retrieved successfully",
