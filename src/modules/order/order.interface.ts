@@ -25,7 +25,7 @@ export interface IOrder {
   serviceId?: Types.ObjectId;
   cartItems?: ICartItem[];
   type: "product" | "service" | "cart";
-  status?: "pending" | "completed" | "rejected";
+  status?: "pending" | "delivered" | "rejected";
   paymentStatus?: "paid" | "unpaid";
   purchaseDate?: Date;
   quantity?: number;
