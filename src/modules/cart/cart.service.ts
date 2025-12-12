@@ -9,13 +9,10 @@ import Cart from "./cart.model";
 const addToCart = async (payload: ICart, email: string) => {
   const { product, serviceId, quantity = 1, type } = payload;
 
-  // Validate user
   const user = await User.findOne({ email });
   if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
-
-  // -------------------------------------------------------
   // 🟦 ADD PRODUCT TO CART
-  // -------------------------------------------------------
+
   if (type === "product") {
     if (!product?.productId) {
       throw new AppError("Product ID missing", StatusCodes.BAD_REQUEST);
@@ -39,7 +36,6 @@ const addToCart = async (payload: ICart, email: string) => {
       return { message: "Product quantity updated in cart" };
     }
 
-    // Create new cart item
     const newCart = await Cart.create({
       userId: user._id,
       product: {

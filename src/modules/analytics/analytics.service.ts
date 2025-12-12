@@ -185,8 +185,6 @@ const getChartData = async (year?: number) => {
   return chartData;
 };
 
-
-
 const analyticsService = {
   getAnalytics,
   getChartData,
