@@ -7,7 +7,7 @@ import { ICart } from "./cart.interface";
 import Cart from "./cart.model";
 
 const addToCart = async (payload: ICart, email: string) => {
-  const { product, serviceId, quantity = 1, type } = payload;
+  const { product, serviceId, quantity = 1, type, totalAmount } = payload;
 
   const user = await User.findOne({ email });
   if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
@@ -47,6 +47,7 @@ const addToCart = async (payload: ICart, email: string) => {
       },
       quantity,
       type: "product",
+      totalAmount,
     });
 
     return newCart;
@@ -83,6 +84,7 @@ const addToCart = async (payload: ICart, email: string) => {
       serviceId,
       type: "service",
       quantity,
+      totalAmount,
     });
 
     return newCart;
