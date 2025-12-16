@@ -225,11 +225,8 @@ const getSinglePayment = async (paymentId: string) => {
 
   if (!order) return p;
 
-  /*
-  ─────────────────────────────────────
-    DIRECT ORDER PRODUCT
-  ─────────────────────────────────────
-  */
+  // DIRECT ORDER PRODUCT
+
   if (order.product?.productId) {
     const productDoc = order.product.productId;
     const featuredId = order.product.featuredId;
@@ -245,9 +242,9 @@ const getSinglePayment = async (paymentId: string) => {
   }
 
   /*
-  ─────────────────────────────────────
+
     CART ITEMS
-  ─────────────────────────────────────
+
   */
   if (order.type === "cart" && order.cartItems?.length > 0) {
     order.cartItems = order.cartItems.map((item: any) => {
@@ -281,13 +278,12 @@ const getSinglePayment = async (paymentId: string) => {
         }
       }
 
-      return { cartId: cartItem }; // cleaned return
+      return { cartId: cartItem }; 
     });
   }
 
   return p;
 };
-
 
 const paymentService = {
   createPayment,

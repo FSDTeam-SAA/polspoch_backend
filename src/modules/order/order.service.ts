@@ -14,7 +14,6 @@ const createNewOrder = async (payload: IOrder, email: string) => {
     throw new AppError("User not found", StatusCodes.NOT_FOUND);
   }
 
-  // ২. Product order
   if (payload.type === "product") {
     if (!payload.product || !payload.product.productId) {
       throw new AppError("Product info is required", StatusCodes.BAD_REQUEST);
@@ -25,7 +24,6 @@ const createNewOrder = async (payload: IOrder, email: string) => {
       throw new AppError("Product not found", StatusCodes.NOT_FOUND);
     }
 
-    // feature select
     let featureData: IProductFeature;
     if (payload.product.featuredId) {
       featureData = product.features.find(
@@ -39,7 +37,6 @@ const createNewOrder = async (payload: IOrder, email: string) => {
       featureData = product.features[0];
     }
 
-    // ৩. Validate mutually exclusive fields
     if (payload.product.unitSize && payload.product.range) {
       throw new AppError(
         "You can select either unitSize or range, not both.",
@@ -53,7 +50,6 @@ const createNewOrder = async (payload: IOrder, email: string) => {
       );
     }
 
-    // ৪. Quantity / range validation
     const quantity = payload.quantity || 1;
     if (
       (product.minRange && quantity < product.minRange) ||
@@ -66,7 +62,7 @@ const createNewOrder = async (payload: IOrder, email: string) => {
     }
   }
 
-  // ৬. Service order
+
   if (payload.type === "service") {
     if (!payload.serviceId) {
       throw new AppError("ServiceId is required", StatusCodes.BAD_REQUEST);
