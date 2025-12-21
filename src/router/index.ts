@@ -8,6 +8,7 @@ import productRouter from "../modules/product/product.router";
 import serviceRouter from "../modules/service/service.router";
 import userRouter from "../modules/user/user.router";
 import analyticRouter from "../modules/analytics/analytics.router";
+import modifyService from "../modules/modifyService/modService.routes"
 
 const router = Router();
 
@@ -47,7 +48,11 @@ const moduleRoutes = [
   {
     path: "/analytics",
     route: analyticRouter
-  }
+  },
+   {
+    path: "/modify-service",
+    route: modifyService,
+  },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
