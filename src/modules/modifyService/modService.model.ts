@@ -56,9 +56,9 @@ const steelConfigSchema = new Schema(
       margin: { type: Number, default: 1.6 },
     },
   },
-  { 
-    timestamps: true, 
-    versionKey: false 
+  {
+    timestamps: true,
+    versionKey: false,
   }
 );
 
