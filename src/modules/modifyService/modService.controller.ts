@@ -23,38 +23,40 @@ export const SteelConfigController = {
       // 1. Validate that a valid type is provided
       const validTypes = ["rebar", "bending", "cutting"];
       if (!type || !validTypes.includes(type)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid or missing type. Must be 'rebar', 'bending', or 'cutting'." 
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid or missing type. Must be 'rebar', 'bending', or 'cutting'.",
         });
       }
 
       // 2. Build a dynamic update object using dot notation
       // This ensures that updating 'rebar' doesn't delete 'bending' or 'cutting'
       const updateData: any = {};
-      
+
       if (materialData) updateData[`${type}.materialData`] = materialData;
       if (labour) updateData[`${type}.labour`] = labour;
       if (margin !== undefined) updateData[`${type}.margin`] = margin;
 
       // 3. Update the document
       const updatedConfig = await SteelConfig.findOneAndUpdate(
-        {}, 
-        { $set: updateData }, 
+        {},
+        { $set: updateData },
         { new: true, upsert: true, runValidators: true }
       );
 
       return res.status(200).json({
         success: true,
+        statusCode: 200,
         message: `${type.toUpperCase()} configuration updated successfully`,
         data: updatedConfig,
       });
     } catch (error: any) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Update failed", 
-        error: error.message 
+      return res.status(400).json({
+        success: false,
+        message: "Update failed",
+        error: error.message,
       });
     }
-  }
+  },
 };
