@@ -9,6 +9,7 @@ import serviceRouter from "../modules/service/service.router";
 import userRouter from "../modules/user/user.router";
 import analyticRouter from "../modules/analytics/analytics.router";
 import modifyService from "../modules/modifyService/modService.routes"
+import modifyRebar from '../modules/templates/rebar/rebar.routes'
 
 const router = Router();
 
@@ -52,6 +53,10 @@ const moduleRoutes = [
    {
     path: "/modify-service",
     route: modifyService,
+  },
+   {
+    path: "/rebar",
+    route: modifyRebar,
   },
 ];
 
