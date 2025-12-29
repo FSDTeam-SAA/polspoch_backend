@@ -10,7 +10,7 @@ import userRouter from "../modules/user/user.router";
 import analyticRouter from "../modules/analytics/analytics.router";
 import modifyService from "../modules/modifyService/modService.routes"
 import modifyRebar from '../modules/templates/rebar/rebar.routes'
-
+import modifyBending from '../modules/templates/bending/bending.routes'
 const router = Router();
 
 const moduleRoutes = [
@@ -57,6 +57,10 @@ const moduleRoutes = [
    {
     path: "/rebar",
     route: modifyRebar,
+  },
+   {
+    path: "/bending",
+    route: modifyBending,
   },
 ];
 
