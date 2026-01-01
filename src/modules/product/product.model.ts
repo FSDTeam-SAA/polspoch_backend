@@ -41,8 +41,8 @@ const FamilySchema = new Schema(
       unique: true,
     },
     img: {
-      type: String,
-      default: null,
+      url: { type: String },
+      publickey: { type: String },
     },
   },
   { timestamps: true, versionKey: false }

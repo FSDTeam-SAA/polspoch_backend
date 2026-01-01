@@ -21,9 +21,9 @@ router.put(
 
 router.delete('/:id', ProductController.deleteProduct)
 
-router.post('/family', upload.single('img'), FamilyController.createFamily)
+router.post('/family/create', upload.single('img'), FamilyController.createFamily)
 
-router.get('/family', FamilyController.getAllFamilies)
+router.get('/family/all', FamilyController.getAllFamilies)
 router.get('/family/:id', FamilyController.getSingleFamily)
 
 router.put('/family/:id', upload.single('img'), FamilyController.updateFamily)
