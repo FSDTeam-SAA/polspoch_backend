@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ProductService } from './product.service'
+import { FamilyService, ProductService } from './product.service'
 import {
   uploadToCloudinary,
   deleteFromCloudinary,
@@ -159,4 +159,131 @@ export const ProductController = {
       res.status(500).json({ success: false, message: error.message })
     }
   },
+}
+
+
+export const FamilyController = {
+  createFamily: catchAsync(async (req: Request, res: Response) => {
+    const body = req.body
+    const file = req.file
+
+    let img = undefined
+
+    if (file) {
+      const uploaded = await uploadToCloudinary(file.path, 'families')
+      img = {
+        url: uploaded.secure_url,
+        publickey: uploaded.public_id,
+      }
+    }
+
+    const result = await FamilyService.createFamily({
+      familyName: body.familyName,
+      img,
+    })
+
+    sendResponse(res, {
+      statusCode: 201,
+      success: true,
+      message: 'Family created successfully',
+      data: result,
+    })
+  }),
+
+  getAllFamilies: catchAsync(async (_req, res) => {
+    const result = await FamilyService.getAllFamilies()
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Families fetched successfully',
+      data: result,
+    })
+  }),
+
+  getSingleFamily: catchAsync(async (req, res) => {
+    const { id } = req.params
+
+    const result = await FamilyService.getSingleFamily(id)
+
+    if (!result) {
+      return sendResponse(res, {
+        statusCode: 404,
+        success: false,
+        message: 'Family not found',
+      })
+    }
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      data: result,
+    })
+  }),
+
+  updateFamily: catchAsync(async (req, res) => {
+    const { id } = req.params
+    const body = req.body
+    const file = req.file
+
+    const existing = await FamilyService.getSingleFamily(id)
+    if (!existing) {
+      return sendResponse(res, {
+        statusCode: 404,
+        success: false,
+        message: 'Family not found',
+      })
+    }
+
+    let img = existing.img
+
+    if (file) {
+      if (img?.publickey) {
+        await deleteFromCloudinary(img.publickey)
+      }
+
+      const uploaded = await uploadToCloudinary(file.path, 'families')
+      img = {
+        url: uploaded.secure_url,
+        publickey: uploaded.public_id,
+      }
+    }
+
+    const updated = await FamilyService.updateFamily(id, {
+      familyName: body.familyName ?? existing.familyName,
+      img,
+    })
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Family updated successfully',
+      data: updated,
+    })
+  }),
+
+  deleteFamily: catchAsync(async (req, res) => {
+    const { id } = req.params
+
+    const existing = await FamilyService.getSingleFamily(id)
+    if (!existing) {
+      return sendResponse(res, {
+        statusCode: 404,
+        success: false,
+        message: 'Family not found',
+      })
+    }
+
+    if (existing.img?.publickey) {
+      await deleteFromCloudinary(existing.img.publickey)
+    }
+
+    await FamilyService.deleteFamily(id)
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Family deleted successfully',
+    })
+  }),
 }

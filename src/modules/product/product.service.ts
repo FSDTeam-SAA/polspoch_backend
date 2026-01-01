@@ -1,4 +1,4 @@
-import { Product } from './product.model'
+import { Family, Product } from './product.model'
 import { IProduct } from './product.interface'
 import { Types } from 'mongoose'
 
@@ -100,5 +100,28 @@ export const ProductService = {
 
   deleteProduct: async (id: string) => {
     return await Product.findByIdAndDelete(id)
+  },
+}
+
+
+export const FamilyService = {
+  createFamily: async (payload: any) => {
+    return await Family.create(payload)
+  },
+
+  getAllFamilies: async () => {
+    return await Family.find().sort({ createdAt: -1 })
+  },
+
+  getSingleFamily: async (id: string) => {
+    return await Family.findById(id)
+  },
+
+  updateFamily: async (id: string, payload: any) => {
+    return await Family.findByIdAndUpdate(id, payload, { new: true })
+  },
+
+  deleteFamily: async (id: string) => {
+    return await Family.findByIdAndDelete(id)
   },
 }

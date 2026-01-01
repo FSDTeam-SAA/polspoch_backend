@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { ProductController } from './product.controller'
+import { FamilyController, ProductController } from './product.controller'
 import { upload } from '../../middleware/multer.middleware'
 
 const router = Router()
@@ -20,5 +20,14 @@ router.put(
 )
 
 router.delete('/:id', ProductController.deleteProduct)
+
+router.post('/family', upload.single('img'), FamilyController.createFamily)
+
+router.get('/family', FamilyController.getAllFamilies)
+router.get('/family/:id', FamilyController.getSingleFamily)
+
+router.put('/family/:id', upload.single('img'), FamilyController.updateFamily)
+
+router.delete('/family/:id', FamilyController.deleteFamily)
 
 export default router
