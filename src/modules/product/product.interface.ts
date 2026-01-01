@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongoose'
+
 export interface IProductFeature {
   reference: string
   size1?: number | null
@@ -15,7 +17,7 @@ interface IProductImage {
 }
 
 export interface IProduct {
-  family: string
+  family: ObjectId
   productName: string
 
   features: IProductFeature[]

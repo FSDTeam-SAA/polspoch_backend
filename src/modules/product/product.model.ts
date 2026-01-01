@@ -32,24 +32,30 @@ const ProductFeatureSchema = new Schema<IProductFeature>(
   // { _id: false } // prevents auto _id in each feature object
 )
 
-const FamilySchema = new Schema({
-  familyName: {
-    type: String,
-    required: true,
+const FamilySchema = new Schema(
+  {
+    familyName: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+    },
+    img: {
+      type: String,
+      default: null,
+    },
   },
-  img: {
-    type: String,
-  },
-})
+  { timestamps: true, versionKey: false }
+)
 
-export const Family = model('Product', FamilySchema)
+export const Family = model('Family', FamilySchema)
 
 const ProductSchema = new Schema<IProduct>(
   {
     family: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Family',
       required: true,
-      trim: true,
     },
     productName: {
       type: String,
