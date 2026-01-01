@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose'
 import { IProduct, IProductFeature } from './product.interface'
+import { required } from 'zod/v4-mini'
 
 const ProductFeatureSchema = new Schema<IProductFeature>(
   {
@@ -30,6 +31,18 @@ const ProductFeatureSchema = new Schema<IProductFeature>(
   }
   // { _id: false } // prevents auto _id in each feature object
 )
+
+const FamilySchema = new Schema({
+  familyName: {
+    type: String,
+    required: true,
+  },
+  img: {
+    type: String,
+  },
+})
+
+export const Family = model('Product', FamilySchema)
 
 const ProductSchema = new Schema<IProduct>(
   {
