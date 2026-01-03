@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { 
   getCuttingTemplates, 
-  updateTemplateImage, 
-  updateCuttingTemplateData 
+  updateCuttingTemplateData, 
+  createCuttingTemplate,
+  deleteCuttingTemplate
 } from './cutting.controller';
 import { upload } from '../../../middleware/multer.middleware';
 // Assuming you use multer for file parsing
@@ -25,12 +26,10 @@ router.get('/', getCuttingTemplates);
  * @desc    Flexible update for top-level fields (cuts, shapeName) 
  * or nested dimension ranges (min/max)
  */
-router.patch('/update-data', updateCuttingTemplateData);
+router.patch('/update-data/:templateId', upload.array('image', 1),updateCuttingTemplateData);
 
-/**
- * @route   POST /api/cutting/update-image/:templateId
- * @desc    Upload new image to Cloudinary and update template
- */
-router.post('/update-image/:templateId', upload.array('image', 1), updateTemplateImage);
 
+router.post('/create',upload.array('image', 1),createCuttingTemplate)
+
+router.delete('/delete/:templateId',deleteCuttingTemplate)
 export default router;

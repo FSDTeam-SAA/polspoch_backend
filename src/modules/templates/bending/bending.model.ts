@@ -37,7 +37,7 @@ const BendingTemplateSchema = new Schema<IBendingTemplate>(
     },
     imageUrl: { 
       type: String, 
-      required: true 
+      required: false
     },
     thicknesses: { 
       type: [Number], 
