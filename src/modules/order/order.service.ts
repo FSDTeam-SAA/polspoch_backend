@@ -52,11 +52,11 @@ const createNewOrder = async (payload: IOrder, email: string) => {
 
     const quantity = payload.quantity || 1;
     if (
-      (product.minRange && quantity < product.minRange) ||
-      (product.maxRange && quantity > product.maxRange)
+      (featureData.minRange && quantity < featureData.minRange) ||
+      (featureData.maxRange && quantity > featureData.maxRange)
     ) {
       throw new AppError(
-        `Quantity must be between ${product.minRange} and ${product.maxRange}`,
+        `Quantity must be between ${featureData.minRange} and ${featureData.maxRange}`,
         StatusCodes.BAD_REQUEST
       );
     }
