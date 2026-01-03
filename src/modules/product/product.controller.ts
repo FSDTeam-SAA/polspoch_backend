@@ -24,10 +24,16 @@ export const ProductController = {
           })
         }
       }
+           // 2️⃣ Handle features
+      let features = body.features
+      if (typeof features === 'string') {
+        // form-data sends features as JSON string
+        features = JSON.parse(features)
+      }
 
       const data = {
         ...body,
-        features: JSON.parse(body.features || '[]'),
+        features,
         productImage: uploadedImages,
       }
 
