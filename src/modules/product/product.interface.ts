@@ -4,6 +4,8 @@ export interface IProductFeature {
   reference: string
   size1?: number | null
   size2?: number | null
+  minRange?: number | null
+  maxRange?: number | null
   thickness?: number | null
   finishQuality: string
   unitSizes: (number | string)[]
@@ -24,8 +26,7 @@ export interface IProduct {
 
   unitSizeCustomizationNote?: string | null
 
-  minRange?: number | null
-  maxRange?: number | null
+
 
   measureUnit: string
 

@@ -12,6 +12,8 @@ const ProductFeatureSchema = new Schema<IProductFeature>(
     size1: { type: Number, default: null },
     size2: { type: Number, default: null },
     thickness: { type: Number, default: null },
+    minRange: { type: Number, default: null },
+    maxRange: { type: Number, default: null },
     finishQuality: {
       type: String,
       required: true,
@@ -74,8 +76,7 @@ const ProductSchema = new Schema<IProduct>(
       default: null,
     },
 
-    minRange: { type: Number, default: null },
-    maxRange: { type: Number, default: null },
+   
 
     measureUnit: {
       type: String,
