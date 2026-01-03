@@ -72,7 +72,7 @@ export const ProductService = {
     }
 
     const products = await Product.find(query)
-      .populate('family') // ⭐ optional but recommended
+      .populate('family') 
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 })

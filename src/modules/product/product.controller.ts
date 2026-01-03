@@ -27,6 +27,8 @@ export const ProductController = {
 
       const data = {
         ...body,
+        minRange: body.minRange ? Number(body.minRange) : null,
+  maxRange: body.maxRange ? Number(body.maxRange) : null,
         features: JSON.parse(body.features || '[]'),
         productImage: uploadedImages,
       }
