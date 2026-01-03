@@ -1,41 +1,48 @@
 import { Router } from 'express';
-import { 
-  getbendingTemplates, 
-  updateTemplateData, 
-  updateTemplateImage 
+import {
+  getBendingTemplates,
+  getSingleBendingTemplate,
+  createBendingTemplate,
+  updateBendingTemplate,
+  updateTemplateDimension,
+  updateBendingTemplateImage,
+  deleteBendingTemplate
 } from './bending.controller';
 import { upload } from '../../../middleware/multer.middleware';
 
 const router = Router();
 
-/**
- * PUBLIC ROUTES
- * Use these to fetch the templates for the website/app
- */
+/* ======================================================
+   PUBLIC ROUTES
+====================================================== */
 
-// Get all templates where type is 'bending'
-router.get('/bending-templates', getbendingTemplates);
+// Get all bending templates
+router.get('/bending-templates', getBendingTemplates);
 
+// Get single bending template by templateId
+router.get('/template/:templateId', getSingleBendingTemplate);
 
-/**
- * ADMIN ROUTES
- * Use these to manage the templates, dimensions, and images
- */
+/* ======================================================
+   ADMIN ROUTES
+====================================================== */
 
-// Update template details (Change ranges for Size A, B, C or change the shape name)
-// Example: PATCH /api/bending/admin/update-template/template-l
+// Create new bending template
+router.post('/admin/create', createBendingTemplate);
+
+// Update entire bending template (no create)
+router.put('/admin/update/:templateId', updateBendingTemplate);
+
+// Update only one dimension (partial update)
+router.patch('/admin/update-dimension', updateTemplateDimension);
+
+// Update template image
 router.patch(
-  '/update-template', 
-  updateTemplateData
+  '/admin/update-image/:templateId',
+  upload.any(),
+  updateBendingTemplateImage
 );
 
-// Update specific template image
-// Example: PATCH /api/bending/admin/update-image/template-l
-// Note: 'imageUrl' should be the key in your Postman / Form-data
-router.patch(
-  '/admin/update-image/:templateId', 
-  upload.any(), 
-  updateTemplateImage
-);
+// Delete bending template
+router.delete('/admin/delete/:templateId', deleteBendingTemplate);
 
 export default router;

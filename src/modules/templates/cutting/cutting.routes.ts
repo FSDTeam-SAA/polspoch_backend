@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { 
   getCuttingTemplates, 
   updateTemplateImage, 
-  updateCuttingTemplateData 
+  updateCuttingTemplateData, 
+  createCuttingTemplate,
+  deleteCuttingTemplate
 } from './cutting.controller';
 import { upload } from '../../../middleware/multer.middleware';
 // Assuming you use multer for file parsing
@@ -33,4 +35,7 @@ router.patch('/update-data', updateCuttingTemplateData);
  */
 router.post('/update-image/:templateId', upload.array('image', 1), updateTemplateImage);
 
+router.post('/create',createCuttingTemplate)
+
+router.delete('/delete/:templateId',deleteCuttingTemplate)
 export default router;

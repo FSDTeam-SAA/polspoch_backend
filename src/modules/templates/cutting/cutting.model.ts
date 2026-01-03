@@ -30,7 +30,7 @@ const CuttingTemplateSchema = new Schema<ICuttingTemplate>(
     },
     templateId: { type: String, required: true, unique: true },
     shapeName: { type: String, required: true },
-    imageUrl: { type: String, required: true },
+    imageUrl: { type: String, required: false},
     thicknesses: { type: [Number], default: [1, 1.5, 2, 3, 4, 5, 6, 8, 10] },
     materials: { type: [String], default: ['RAWSTEEL', 'STAINLESS', 'ALUMINUM', 'GALVANIZED','CORTEN'] },
     dimensions: [
