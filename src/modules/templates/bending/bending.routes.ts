@@ -4,8 +4,7 @@ import {
   getSingleBendingTemplate,
   createBendingTemplate,
   updateBendingTemplate,
-  updateTemplateDimension,
-  updateBendingTemplateImage,
+ 
   deleteBendingTemplate
 } from './bending.controller';
 import { upload } from '../../../middleware/multer.middleware';
@@ -27,20 +26,14 @@ router.get('/template/:templateId', getSingleBendingTemplate);
 ====================================================== */
 
 // Create new bending template
-router.post('/admin/create', createBendingTemplate);
+router.post('/admin/create',upload.any(), createBendingTemplate);
 
 // Update entire bending template (no create)
-router.put('/admin/update/:templateId', updateBendingTemplate);
+router.patch('/admin/update/:templateId', upload.any(), updateBendingTemplate);
 
-// Update only one dimension (partial update)
-router.patch('/admin/update-dimension', updateTemplateDimension);
 
-// Update template image
-router.patch(
-  '/admin/update-image/:templateId',
-  upload.any(),
-  updateBendingTemplateImage
-);
+
+
 
 // Delete bending template
 router.delete('/admin/delete/:templateId', deleteBendingTemplate);

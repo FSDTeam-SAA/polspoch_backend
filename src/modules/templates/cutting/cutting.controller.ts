@@ -2,87 +2,6 @@ import { Request, Response } from 'express';
 import CuttingTemplate from './cutting.model';
 import { uploadToCloudinary } from '../../../utils/cloudinary';
 
-// // @desc    Get all templates filtered by type 'CUTTING'
-// export const getCuttingTemplates = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const templates = await CuttingTemplate.find({ type: 'CUTTING' });
-//     res.status(200).json({ success: true, data: templates });
-//   } catch (error: any) {
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// };
-
-// // @desc    Update template image
-// export const updateTemplateImage = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const { templateId } = req.params;
-//     const files = req.files as Express.Multer.File[];
-    
-//     if (!files || files.length === 0) {
-//       res.status(400).json({ success: false, message: "No image file provided" });
-//       return;
-//     }
-
-//     const uploaded = await uploadToCloudinary(files[0].path, 'cutting-templates');
-    
-//     const updatedTemplate = await CuttingTemplate.findOneAndUpdate(
-//       { templateId },
-//       { $set: { imageUrl: uploaded.secure_url } },
-//       { new: true }
-//     );
-
-//     res.status(200).json({ success: true, data: updatedTemplate });
-//   } catch (error: any) {
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// };
-
-// // @desc    Flexible Update: Change cuts, shapeName, or specific Dimension Ranges
-// export const updateCuttingTemplateData = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const { templateId, key, newLabel, min, max, cuts, shapeName, materials, thicknesses } = req.body;
-
-//     if (!templateId) {
-//       res.status(400).json({ success: false, message: "templateId is required" });
-//       return;
-//     }
-
-//     const updateFields: any = {};
-
-//     // 1. Handle Top-Level Fields (cuts, name, arrays)
-//     if (cuts !== undefined) updateFields["cuts"] = cuts;
-//     if (shapeName !== undefined) updateFields["shapeName"] = shapeName;
-//     if (materials !== undefined) updateFields["materials"] = materials;
-//     if (thicknesses !== undefined) updateFields["thicknesses"] = thicknesses;
-
-//     // 2. Handle Nested Dimensions (only if 'key' is provided)
-//     if (key) {
-//       if (newLabel !== undefined) updateFields["dimensions.$[dim].label"] = newLabel;
-//       if (min !== undefined) updateFields["dimensions.$[dim].minRange"] = min;
-//       if (max !== undefined) updateFields["dimensions.$[dim].maxRange"] = max;
-//     }
-
-//     const updatedTemplate = await CuttingTemplate.findOneAndUpdate(
-//       { templateId },
-//       { $set: updateFields },
-//       {
-//         new: true,
-//         runValidators: true,
-//         // Only apply array filter if we are updating a specific dimension key
-//         arrayFilters: key ? [{ "dim.key": key }] : undefined 
-//       }
-//     );
-
-//     if (!updatedTemplate) {
-//       res.status(404).json({ success: false, message: "Template not found" });
-//       return;
-//     }
-
-//     res.status(200).json({ success: true, data: updatedTemplate });
-//   } catch (error: any) {
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// };
 
 
 
@@ -109,10 +28,7 @@ export const getCuttingTemplates = async (
 ====================================================== */
 
 // @desc Create new cutting template
-export const createCuttingTemplate = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const createCuttingTemplate = async (req: Request, res: Response): Promise<void> => {
   try {
     const { templateId } = req.body;
 
@@ -127,9 +43,33 @@ export const createCuttingTemplate = async (
       return;
     }
 
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      res.status(400).json({ success: false, message: 'Template image is required' });
+      return;
+    }
+
+    // Upload image to Cloudinary
+    const uploaded = await uploadToCloudinary(files[0].path, 'cutting-templates');
+
+    // Parse arrays and dimensions if sent as strings
+    let thicknesses = req.body.thicknesses;
+    if (typeof thicknesses === 'string') thicknesses = JSON.parse(thicknesses);
+
+    let materials = req.body.materials;
+    if (typeof materials === 'string') materials = JSON.parse(materials);
+
+    let dimensions = req.body.dimensions;
+    if (typeof dimensions === 'string') dimensions = JSON.parse(dimensions);
+
     const template = await CuttingTemplate.create({
       ...req.body,
-      type: 'CUTTING'
+      type: 'CUTTING',
+      imageUrl: uploaded.secure_url,
+      thicknesses,
+      materials,
+      dimensions
     });
 
     res.status(201).json({ success: true, data: template });
@@ -143,90 +83,73 @@ export const createCuttingTemplate = async (
 ====================================================== */
 
 // @desc Flexible update: top-level fields or specific dimension
-export const updateCuttingTemplateData = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const updateCuttingTemplateData = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { templateId, key, newLabel, min, max, cuts, shapeName, materials, thicknesses } = req.body;
-
+    const { templateId } = req.params;
     if (!templateId) {
-      res.status(400).json({ success: false, message: "templateId is required" });
+      res.status(400).json({ success: false, message: 'templateId param is required' });
       return;
     }
 
-    const updateFields: any = {};
+    const files = req.files as Express.Multer.File[];
+    const updateFields: any = { ...req.body };
 
-    // Top-level fields
-    if (cuts !== undefined) updateFields["cuts"] = cuts;
-    if (shapeName !== undefined) updateFields["shapeName"] = shapeName;
-    if (materials !== undefined) updateFields["materials"] = materials;
-    if (thicknesses !== undefined) updateFields["thicknesses"] = thicknesses;
+    // Parse arrays if sent as strings
+    if (req.body.thicknesses && typeof req.body.thicknesses === 'string') {
+      try {
+        updateFields.thicknesses = JSON.parse(req.body.thicknesses);
+      } catch {
+        updateFields.thicknesses = req.body.thicknesses
+          .replace(/[\[\]\s]/g, "")
+          .split(",")
+          .map(Number);
+      }
+    }
 
-    // Nested dimensions
-    if (key) {
-      if (newLabel !== undefined) updateFields["dimensions.$[dim].label"] = newLabel;
-      if (min !== undefined) updateFields["dimensions.$[dim].minRange"] = min;
-      if (max !== undefined) updateFields["dimensions.$[dim].maxRange"] = max;
+    if (req.body.materials && typeof req.body.materials === 'string') {
+      try {
+        updateFields.materials = JSON.parse(req.body.materials);
+      } catch {
+        updateFields.materials = req.body.materials
+          .replace(/[\[\]\s]/g, "")
+          .split(",");
+      }
+    }
+
+    if (req.body.dimensions && typeof req.body.dimensions === 'string') {
+      updateFields.dimensions = JSON.parse(req.body.dimensions);
+    }
+
+    // Handle image upload
+    if (files && files.length > 0) {
+      const uploaded = await uploadToCloudinary(files[0].path, 'cutting-templates');
+      updateFields.imageUrl = uploaded.secure_url;
     }
 
     const updatedTemplate = await CuttingTemplate.findOneAndUpdate(
       { templateId },
       { $set: updateFields },
-      {
-        new: true,
-        runValidators: true,
-        arrayFilters: key ? [{ "dim.key": key }] : undefined
-      }
+      { new: true, runValidators: true }
     );
 
     if (!updatedTemplate) {
-      res.status(404).json({ success: false, message: "Template not found" });
-      return;
-    }
-
-    res.status(200).json({ success: true, data: updatedTemplate });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-/* ======================================================
-   UPDATE IMAGE
-====================================================== */
-
-// @desc Update template image
-export const updateTemplateImage = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { templateId } = req.params;
-    const files = req.files as Express.Multer.File[];
-
-    if (!files || files.length === 0) {
-      res.status(400).json({ success: false, message: 'No image provided' });
-      return;
-    }
-
-    const uploaded = await uploadToCloudinary(files[0].path, 'cutting-templates');
-
-    const updated = await CuttingTemplate.findOneAndUpdate(
-      { templateId },
-      { $set: { imageUrl: uploaded.secure_url } },
-      { new: true }
-    );
-
-    if (!updated) {
       res.status(404).json({ success: false, message: 'Template not found' });
       return;
     }
 
-    res.status(200).json({ success: true, data: updated });
+    res.status(200).json({
+      success: true,
+      message: files && files.length > 0 ? 'Template and image updated successfully' : 'Template updated successfully',
+      data: updatedTemplate
+    });
+
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+
+
 
 /* ======================================================
    DELETE

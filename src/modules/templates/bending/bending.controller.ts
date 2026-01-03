@@ -2,77 +2,6 @@ import { Request, Response } from 'express';
 import BendingTemplate from './bending.model';
 import { uploadToCloudinary } from '../../../utils/cloudinary';
 
-// // @desc    Get all templates filtered by type 'bending'
-// export const getbendingTemplates = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     // Querying specifically by the 'type' field
-//     const templates = await BendingTemplate.find({ type: 'BENDING' });
-//     res.status(200).json({ success: true, data: templates });
-//   } catch (error: any) {
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// };
-
-// // @desc    Update template image
-// export const updateTemplateImage = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const { templateId } = req.params;
-//     const files = req.files as Express.Multer.File[];
-    
-//     if (!files || files.length === 0) {
-//       res.status(400).json({ success: false, message: "No image file provided" });
-//       return;
-//     }
-
-//     const uploaded = await uploadToCloudinary(files[0].path, 'bending-templates');
-    
-//     const updatedTemplate = await BendingTemplate.findOneAndUpdate(
-//       { templateId },
-//       { $set: { imageUrl: uploaded.secure_url } },
-//       { new: true }
-//     );
-
-//     res.status(200).json({ success: true, data: updatedTemplate });
-//   } catch (error: any) {
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// };
-
-// // @desc    Change ranges for Size A, B, or C
-// export const updateTemplateData = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const { templateId, key, newLabel, min, max } = req.body;
-
-//     if (!templateId || !key) {
-//       res.status(400).json({ success: false, message: "templateId and key are required" });
-//       return;
-//     }
-
-//     const updateFields: any = {};
-//     if (newLabel !== undefined) updateFields["dimensions.$[dim].label"] = newLabel;
-//     if (min !== undefined) updateFields["dimensions.$[dim].minRange"] = min;
-//     if (max !== undefined) updateFields["dimensions.$[dim].maxRange"] = max;
-
-//     const updatedTemplate = await BendingTemplate.findOneAndUpdate(
-//       { templateId },
-//       { $set: updateFields },
-//       {
-//         new: true,
-//         runValidators: true,
-//         arrayFilters: [{ "dim.key": key }]
-//       }
-//     );
-
-//     if (!updatedTemplate) {
-//       res.status(404).json({ success: false, message: "Template or Field Key not found" });
-//       return;
-//     }
-
-//     res.status(200).json({ success: true, data: updatedTemplate });
-//   } catch (error: any) {
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// };
 
 
 /* ======================================================
@@ -129,25 +58,36 @@ export const createBendingTemplate = async (
     const { templateId } = req.body;
 
     if (!templateId) {
-      res.status(400).json({
-        success: false,
-        message: 'templateId is required'
-      });
+      res.status(400).json({ success: false, message: 'templateId is required' });
       return;
     }
 
     const exists = await BendingTemplate.findOne({ templateId });
     if (exists) {
-      res.status(409).json({
-        success: false,
-        message: 'Template already exists'
-      });
+      res.status(409).json({ success: false, message: 'Template already exists' });
       return;
+    }
+
+    // Parse arrays from Form-Data JSON strings
+    const thicknesses = req.body.thicknesses ? JSON.parse(req.body.thicknesses) : undefined;
+    const materials = req.body.materials ? JSON.parse(req.body.materials) : undefined;
+    const dimensions = req.body.dimensions ? JSON.parse(req.body.dimensions) : undefined;
+
+    // Handle image upload if provided
+    let imageUrl;
+    const files = req.files as Express.Multer.File[];
+    if (files && files.length > 0) {
+      const uploaded = await uploadToCloudinary(files[0].path, 'bending-templates');
+      imageUrl = uploaded.secure_url;
     }
 
     const template = await BendingTemplate.create({
       ...req.body,
-      type: 'BENDING'
+      type: 'BENDING',
+      thicknesses,
+      materials,
+      dimensions,
+      imageUrl
     });
 
     res.status(201).json({ success: true, data: template });
@@ -155,7 +95,6 @@ export const createBendingTemplate = async (
     res.status(500).json({ success: false, error: error.message });
   }
 };
-
 /* ======================================================
    UPDATE (FULL)
 ====================================================== */
@@ -168,21 +107,48 @@ export const updateBendingTemplate = async (
   try {
     const { templateId } = req.params;
 
-    const updated = await BendingTemplate.findOneAndUpdate(
-      { templateId },
-      { $set: req.body },
-      { new: true, runValidators: true }
-    );
-
-    if (!updated) {
-      res.status(404).json({
-        success: false,
-        message: 'Template not found'
-      });
+    if (!templateId) {
+      res.status(400).json({ success: false, message: 'templateId param is required' });
       return;
     }
 
-    res.status(200).json({ success: true, data: updated });
+    const files = req.files as Express.Multer.File[];
+
+    // Parse arrays from Form-Data JSON strings
+    const updateFields: any = { ...req.body };
+    if (req.body.thicknesses && typeof req.body.thicknesses === 'string') {
+      updateFields.thicknesses = JSON.parse(req.body.thicknesses);
+    }
+    if (req.body.materials && typeof req.body.materials === 'string') {
+      updateFields.materials = JSON.parse(req.body.materials);
+    }
+    if (req.body.dimensions && typeof req.body.dimensions === 'string') {
+      updateFields.dimensions = JSON.parse(req.body.dimensions);
+    }
+
+    // Handle image upload if provided
+    if (files && files.length > 0) {
+      const uploaded = await uploadToCloudinary(files[0].path, 'bending-templates');
+      updateFields.imageUrl = uploaded.secure_url;
+    }
+
+    // Full update of all fields including dimensions
+    const updatedTemplate = await BendingTemplate.findOneAndUpdate(
+      { templateId },
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedTemplate) {
+      res.status(404).json({ success: false, message: 'Template not found' });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: files && files.length > 0 ? 'Template and image updated successfully' : 'Template updated successfully',
+      data: updatedTemplate
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -192,99 +158,7 @@ export const updateBendingTemplate = async (
    UPDATE (PARTIAL – DIMENSION)
 ====================================================== */
 
-// @desc Update dimension range/label
-export const updateTemplateDimension = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { templateId, key, newLabel, min, max } = req.body;
 
-    if (!templateId || !key) {
-      res.status(400).json({
-        success: false,
-        message: 'templateId and key are required'
-      });
-      return;
-    }
-
-    const updateFields: any = {};
-    if (newLabel !== undefined)
-      updateFields['dimensions.$[dim].label'] = newLabel;
-    if (min !== undefined)
-      updateFields['dimensions.$[dim].minRange'] = min;
-    if (max !== undefined)
-      updateFields['dimensions.$[dim].maxRange'] = max;
-
-    const updated = await BendingTemplate.findOneAndUpdate(
-      { templateId },
-      { $set: updateFields },
-      {
-        new: true,
-        runValidators: true,
-        arrayFilters: [{ 'dim.key': key }]
-      }
-    );
-
-    if (!updated) {
-      res.status(404).json({
-        success: false,
-        message: 'Template or dimension not found'
-      });
-      return;
-    }
-
-    res.status(200).json({ success: true, data: updated });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-/* ======================================================
-   UPDATE IMAGE
-====================================================== */
-
-// @desc Update template image
-export const updateBendingTemplateImage = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { templateId } = req.params;
-    const files = req.files as Express.Multer.File[];
-
-    if (!files || files.length === 0) {
-      res.status(400).json({
-        success: false,
-        message: 'No image provided'
-      });
-      return;
-    }
-
-    const uploaded = await uploadToCloudinary(
-      files[0].path,
-      'bending-templates'
-    );
-
-    const updated = await BendingTemplate.findOneAndUpdate(
-      { templateId },
-      { $set: { imageUrl: uploaded.secure_url } },
-      { new: true }
-    );
-
-    if (!updated) {
-      res.status(404).json({
-        success: false,
-        message: 'Template not found'
-      });
-      return;
-    }
-
-    res.status(200).json({ success: true, data: updated });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
 
 /* ======================================================
    DELETE
