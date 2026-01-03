@@ -12,6 +12,7 @@ export const ProductController = {
     try {
       const files = req.files as Express.Multer.File[]
       const body = req.body
+      
 
       const uploadedImages: { url: string; publickey: string }[] = []
 
