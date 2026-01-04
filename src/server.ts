@@ -2,6 +2,7 @@ import http from "http";
 import mongoose from "mongoose";
 import app from "./app";
 import config from "./config";
+import '../src/modules/payment/confirmPayment'
 
 async function main() {
   try {

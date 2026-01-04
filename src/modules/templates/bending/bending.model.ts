@@ -14,7 +14,8 @@ export interface IBendingTemplate extends Document {
   shapeName: string;     // e.g., 'L SHAPE'
   imageUrl: string;
   thicknesses: number[]; // [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8]
-  materials: string[];   // ['RAWSEEL', 'TEARDROP']
+  materials: string[];
+  bend:number;   // ['RAWSEEL', 'TEARDROP']
   dimensions: IBendingDimension[];
 }
 
@@ -47,6 +48,7 @@ const BendingTemplateSchema = new Schema<IBendingTemplate>(
       type: [String], 
       default: ['RAWSEEL', 'TEARDROP','GALVANIZED','CORTEN',] 
     },
+    bend:{type:Number},
     dimensions: [
       {
         key: { type: String, required: true },

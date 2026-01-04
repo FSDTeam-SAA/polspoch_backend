@@ -6,6 +6,7 @@ export interface IPayment {
   amount: number;
   status: "pending" | "success" | "failed";
   transactionId?: string;
+  checkoutSessionId?:string
   createdAt: Date;
   updatedAt: Date;
 }

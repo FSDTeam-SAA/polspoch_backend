@@ -13,7 +13,12 @@ const paymentModel = new Schema<IPayment>(
       required: true,
     },
     transactionId: { type: String },
+      checkoutSessionId: {
+      type: String,
+      index: true,
+    },
   },
+  
   {
     timestamps: true,
   }

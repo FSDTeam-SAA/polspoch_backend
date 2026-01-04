@@ -43,7 +43,7 @@ const createPayment = async (
     line_items: [
       {
         price_data: {
-          currency: "usd",
+          currency: "eur",
           product_data: {
             name: `Order Payment #${orderId}`,
           },
@@ -62,7 +62,9 @@ const createPayment = async (
       userId: user._id.toString(),
     },
   });
-
+   await Payment.findByIdAndUpdate(paymentRecord._id, {
+  checkoutSessionId: session.id,
+});
   return {
     url: session.url,
   };
