@@ -21,7 +21,7 @@ export interface IRebarShape extends Document {
 
 const RebarShapeSchema = new Schema<IRebarShape>({
   type: { type: String, default: 'REBAR' },
-  templateId: { type: String, required: true, unique: true },
+  templateId: { type: String, required: true, unique: true,trim:true},
   shapeName: { type: String, required: true },
   imageUrl: { type: String, required: false },
   availableDiameters: { type: [Number], default: [6, 8, 10, 12, 16, 20, 25] },
