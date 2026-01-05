@@ -30,7 +30,8 @@ const BendingTemplateSchema = new Schema<IBendingTemplate>(
     templateId: { 
       type: String, 
       required: true, 
-      unique: true 
+      unique: true, 
+      trim: true 
     },
     shapeName: { 
       type: String, 

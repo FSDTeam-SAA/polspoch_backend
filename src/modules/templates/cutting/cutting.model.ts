@@ -28,7 +28,7 @@ const CuttingTemplateSchema = new Schema<ICuttingTemplate>(
       required: true, 
       index: true 
     },
-    templateId: { type: String, required: true, unique: true },
+    templateId: { type: String, required: true, unique: true,trim: true},
     shapeName: { type: String, required: true },
     imageUrl: { type: String, required: false},
     thickness: { type: [Number], default: [1, 1.5, 2, 3, 4, 5, 6, 8, 10] },
