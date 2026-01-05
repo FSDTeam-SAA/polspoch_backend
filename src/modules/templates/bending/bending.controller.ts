@@ -69,7 +69,7 @@ export const createBendingTemplate = async (
     }
 
     // Parse arrays from Form-Data JSON strings
-    const thicknesses = req.body.thicknesses ? JSON.parse(req.body.thicknesses) : undefined;
+    const thickness = req.body.thickness ? JSON.parse(req.body.thickness) : undefined;
     const materials = req.body.materials ? JSON.parse(req.body.materials) : undefined;
     const dimensions = req.body.dimensions ? JSON.parse(req.body.dimensions) : undefined;
 
@@ -84,7 +84,7 @@ export const createBendingTemplate = async (
     const template = await BendingTemplate.create({
       ...req.body,
       type: 'BENDING',
-      thicknesses,
+      thickness,
       materials,
       dimensions,
       imageUrl

@@ -54,8 +54,8 @@ export const createCuttingTemplate = async (req: Request, res: Response): Promis
     const uploaded = await uploadToCloudinary(files[0].path, 'cutting-templates');
 
     // Parse arrays and dimensions if sent as strings
-    let thicknesses = req.body.thicknesses;
-    if (typeof thicknesses === 'string') thicknesses = JSON.parse(thicknesses);
+    let thickness = req.body.thickness;
+    if (typeof thickness === 'string') thickness = JSON.parse(thickness);
 
     let materials = req.body.materials;
     if (typeof materials === 'string') materials = JSON.parse(materials);
@@ -67,7 +67,7 @@ export const createCuttingTemplate = async (req: Request, res: Response): Promis
       ...req.body,
       type: 'CUTTING',
       imageUrl: uploaded.secure_url,
-      thicknesses,
+      thickness,
       materials,
       dimensions
     });
@@ -95,11 +95,11 @@ export const updateCuttingTemplateData = async (req: Request, res: Response): Pr
     const updateFields: any = { ...req.body };
 
     // Parse arrays if sent as strings
-    if (req.body.thicknesses && typeof req.body.thicknesses === 'string') {
+    if (req.body.thickness && typeof req.body.thickness === 'string') {
       try {
-        updateFields.thicknesses = JSON.parse(req.body.thicknesses);
+        updateFields.thickness = JSON.parse(req.body.thickness);
       } catch {
-        updateFields.thicknesses = req.body.thicknesses
+        updateFields.thickness = req.body.thickness
           .replace(/[\[\]\s]/g, "")
           .split(",")
           .map(Number);

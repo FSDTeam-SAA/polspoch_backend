@@ -11,6 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2025-08-27.basil",
 });
 
+export const startStripePendingPaymentsJob = () => {
 cron.schedule("*/2 * * * *", async () => {
   console.log("✅ Running Stripe pending payments check...");
 
@@ -107,3 +108,4 @@ cron.schedule("*/2 * * * *", async () => {
     console.error("⚠️ Cron job failed:", err);
   }
 });
+}
