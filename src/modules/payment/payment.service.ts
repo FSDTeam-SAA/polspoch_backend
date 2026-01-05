@@ -36,10 +36,12 @@ const createPayment = async (
   });
 
   // 4. Create Stripe Checkout Session
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
+  const session = await stripe.checkout.sessions.create(
+    {
+   payment_method_types: ["card","sepa_debit"],
     customer_email: user.email,
-
+    mode: "payment",
+    
     line_items: [
       {
         price_data: {
@@ -61,7 +63,7 @@ const createPayment = async (
       orderId: order._id.toString(),
       userId: user._id.toString(),
     },
-  });
+  } as Stripe.Checkout.SessionCreateParams);
    await Payment.findByIdAndUpdate(paymentRecord._id, {
   checkoutSessionId: session.id,
 });
