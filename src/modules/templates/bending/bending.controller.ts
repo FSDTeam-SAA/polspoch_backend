@@ -116,8 +116,8 @@ export const updateBendingTemplate = async (
 
     // Parse arrays from Form-Data JSON strings
     const updateFields: any = { ...req.body };
-    if (req.body.thicknesses && typeof req.body.thicknesses === 'string') {
-      updateFields.thicknesses = JSON.parse(req.body.thicknesses);
+    if (req.body.thickness && typeof req.body.thickness === 'string') {
+      updateFields.thickness = JSON.parse(req.body.thickness);
     }
     if (req.body.materials && typeof req.body.materials === 'string') {
       updateFields.materials = JSON.parse(req.body.materials);
