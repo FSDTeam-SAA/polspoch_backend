@@ -2,6 +2,9 @@ import { StatusCodes } from "http-status-codes";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import orderService from "./order.service";
+import AppError from "../../errors/AppError";
+import mongoose from "mongoose";
+import { Order } from "./order.model";
 
 const createOrder = catchAsync(async (req, res) => {
   const { email } = req.user;
@@ -63,11 +66,42 @@ const updateOrderStatus = catchAsync(async (req, res) => {
   });
 });
 
+ const   deleteOrders = catchAsync(async (req,res) => {
+    
+      const { orderIds } = req.body
+
+      if (!orderIds) {
+        throw new AppError('Order IDs are required', StatusCodes.BAD_REQUEST)
+      }
+
+      const idsArray = Array.isArray(orderIds)
+        ? orderIds
+        : orderIds.split(',')
+
+      const objectIds = idsArray.map(
+        (id: string) => new mongoose.Types.ObjectId(id)
+      )
+
+      const result = await Order.deleteMany({
+        _id: { $in: objectIds },
+      })
+
+      res.status(StatusCodes.OK).json({
+        success: true,
+        message: 'Orders deleted successfully',
+        data: result,
+      })
+    } 
+  )
+
+
+
 const orderController = {
   createOrder,
   getMyOrders,
   getAllOrders,
   updateOrderStatus,
+  deleteOrders
 };
 
 export default orderController;

@@ -16,5 +16,6 @@ router.put(
   orderController.updateOrderStatus
 );
 
+router.delete('/delete',orderController.deleteOrders)
 const orderRouter = router;
 export default orderRouter;
