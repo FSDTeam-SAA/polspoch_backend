@@ -33,7 +33,7 @@ const CuttingTemplateSchema = new Schema<ICuttingTemplate>(
       materials: [
     {
       material: { type: String, required: true },
-      thickness: { type: [Number], default: [] } // can have different thicknesses per material
+      thickness: { type: [Number], default: [] } 
     }
   ],
     dimensions: [
