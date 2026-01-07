@@ -13,7 +13,7 @@ export interface ICuttingTemplate extends Document {
   templateId: string;
   shapeName: string;
   imageUrl: string;
-  materialOptions: string[];
+  materials: string[];
   dimensions: ICuttingDimension[];
   cuts: number; // Simple number field as requested
   isActive: boolean;
@@ -30,7 +30,7 @@ const CuttingTemplateSchema = new Schema<ICuttingTemplate>(
     templateId: { type: String, required: true, unique: true,trim: true},
     shapeName: { type: String, required: true },
     imageUrl: { type: String, required: false},
-      materialOptions: [
+      materials: [
     {
       material: { type: String, required: true },
       thickness: { type: [Number], default: [] } // can have different thicknesses per material

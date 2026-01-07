@@ -54,8 +54,8 @@ export const createCuttingTemplate = async (req: Request, res: Response): Promis
     const uploaded = await uploadToCloudinary(files[0].path, 'cutting-templates');
 
     // Parse arrays and dimensions if sent as strings
-    let materialOptions = req.body.materialOptions;
-if (typeof materialOptions === 'string') materialOptions = JSON.parse(materialOptions);
+    let materials = req.body.materials;
+if (typeof materials === 'string') materials = JSON.parse(materials);
 
 
     let dimensions = req.body.dimensions;
@@ -66,7 +66,7 @@ if (typeof materialOptions === 'string') materialOptions = JSON.parse(materialOp
       type: 'CUTTING',
       imageUrl: uploaded.secure_url,
      
-      materialOptions,
+      materials,
       dimensions
     });
 
@@ -93,12 +93,12 @@ export const updateCuttingTemplateData = async (req: Request, res: Response): Pr
     const updateFields: any = { ...req.body };
 
     // Parse arrays if sent as strings
-  if (req.body.materialOptions && typeof req.body.materialOptions === 'string') {
+  if (req.body.materials && typeof req.body.materials === 'string') {
   try {
-    updateFields.materialOptions = JSON.parse(req.body.materialOptions);
+    updateFields.materials = JSON.parse(req.body.materials);
   } catch {
     // optional: fallback parsing
-    updateFields.materialOptions = [];
+    updateFields.materials = [];
   }
 }
 
