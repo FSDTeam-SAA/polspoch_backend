@@ -54,11 +54,9 @@ export const createCuttingTemplate = async (req: Request, res: Response): Promis
     const uploaded = await uploadToCloudinary(files[0].path, 'cutting-templates');
 
     // Parse arrays and dimensions if sent as strings
-    let thickness = req.body.thickness;
-    if (typeof thickness === 'string') thickness = JSON.parse(thickness);
+    let materialOptions = req.body.materialOptions;
+if (typeof materialOptions === 'string') materialOptions = JSON.parse(materialOptions);
 
-    let materials = req.body.materials;
-    if (typeof materials === 'string') materials = JSON.parse(materials);
 
     let dimensions = req.body.dimensions;
     if (typeof dimensions === 'string') dimensions = JSON.parse(dimensions);
@@ -67,8 +65,8 @@ export const createCuttingTemplate = async (req: Request, res: Response): Promis
       ...req.body,
       type: 'CUTTING',
       imageUrl: uploaded.secure_url,
-      thickness,
-      materials,
+     
+      materialOptions,
       dimensions
     });
 
@@ -95,26 +93,17 @@ export const updateCuttingTemplateData = async (req: Request, res: Response): Pr
     const updateFields: any = { ...req.body };
 
     // Parse arrays if sent as strings
-    if (req.body.thickness && typeof req.body.thickness === 'string') {
-      try {
-        updateFields.thickness = JSON.parse(req.body.thickness);
-      } catch {
-        updateFields.thickness = req.body.thickness
-          .replace(/[\[\]\s]/g, "")
-          .split(",")
-          .map(Number);
-      }
-    }
+  if (req.body.materialOptions && typeof req.body.materialOptions === 'string') {
+  try {
+    updateFields.materialOptions = JSON.parse(req.body.materialOptions);
+  } catch {
+    // optional: fallback parsing
+    updateFields.materialOptions = [];
+  }
+}
 
-    if (req.body.materials && typeof req.body.materials === 'string') {
-      try {
-        updateFields.materials = JSON.parse(req.body.materials);
-      } catch {
-        updateFields.materials = req.body.materials
-          .replace(/[\[\]\s]/g, "")
-          .split(",");
-      }
-    }
+
+ 
 
     if (req.body.dimensions && typeof req.body.dimensions === 'string') {
       updateFields.dimensions = JSON.parse(req.body.dimensions);
