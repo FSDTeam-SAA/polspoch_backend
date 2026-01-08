@@ -1,13 +1,13 @@
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 import { Product } from "../product/product.model";
-import Service from "../service/service.model";
 import { User } from "../user/user.model";
-import { ICart } from "./cart.interface";
+
 import Cart from "./cart.model";
+import { ICart } from "./cart.interface";
 
 const addToCart = async (payload: ICart, email: string) => {
-  const { product, serviceId, quantity = 1, type, totalAmount } = payload;
+  const { product,serviceData, quantity = 1, type, totalAmount } = payload;
 
   const user = await User.findOne({ email });
   if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
@@ -56,41 +56,27 @@ const addToCart = async (payload: ICart, email: string) => {
   // -------------------------------------------------------
   // 🟩 ADD SERVICE TO CART
   // -------------------------------------------------------
+  // 🟩 CASE 2: SERVICE (Rebar, Bending, or Cutting)
   if (type === "service") {
-    if (!serviceId) {
-      throw new AppError("Service ID missing", StatusCodes.BAD_REQUEST);
+    // We expect serviceData to contain the specific name (e.g., serviceData.serviceType = "bending")
+    if (!serviceData?.serviceType) {
+      throw new AppError("Specific service type (rebar/bending/cutting) is required in serviceData", StatusCodes.BAD_REQUEST);
     }
 
-    const isServiceExist = await Service.findById(serviceId);
-    if (!isServiceExist) {
-      throw new AppError("Service not found", StatusCodes.NOT_FOUND);
-    }
-
-    // Check if already added
-    const existingCart = await Cart.findOne({
-      userId: user._id,
-      serviceId,
-    });
-
-    if (existingCart) {
-      await Cart.findByIdAndUpdate(existingCart._id, {
-        $inc: { quantity },
-      });
-      return { message: "Service quantity updated in cart" };
-    }
-
+    // Always create a new entry for services to maintain unique custom dimensions
     const newCart = await Cart.create({
       userId: user._id,
-      serviceId,
+     
+      serviceData, // This now contains shapeNamar/bending/cutting)
       type: "service",
       quantity,
-      totalAmount,
+      totalAmount, 
     });
 
     return newCart;
   }
 
-  throw new AppError("Invalid cart type", StatusCodes.BAD_REQUEST);
+  throw new AppError("Invalid cart type. Use 'product' or 'service'", StatusCodes.BAD_REQUEST);
 };
 
 const getMyCart = async (email: string, page: number, limit: number) => {
