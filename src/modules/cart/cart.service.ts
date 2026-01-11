@@ -93,9 +93,6 @@ const getMyCart = async (email: string, page: number, limit: number) => {
     .populate({
       path: "product.productId",
     })
-     .populate({
-    path: "product.featuredId",
-     })
     .populate({
       path: "serviceId",
       select: "-__v -createdAt -updatedAt",
@@ -107,26 +104,21 @@ const getMyCart = async (email: string, page: number, limit: number) => {
   // Convert mongoose docs to JSON
   const cleanCarts = JSON.parse(JSON.stringify(carts));
 
-  // Add selectedFeature logic
+  // Attach selectedFeature from features array
   const formatted = cleanCarts.map((cart: any) => {
-    if (cart.type === "product" && cart.product) {
+    if (cart.type === "product" && cart.product?.productId) {
       const productDoc = cart.product.productId;
       const featuredId = cart.product.featuredId;
 
-      if (productDoc && featuredId && productDoc.features) {
-        // Find matched feature
+      if (featuredId && productDoc.features) {
         const matchedFeature = productDoc.features.find(
-          (f: any) => f._id === featuredId
+          (f: any) => f._id === featuredId || f._id === featuredId?._id
         );
 
-        // Add selectedFeature
+        // Attach selectedFeature without deleting anything
         cart.product.selectedFeature = matchedFeature || null;
-
-        // Remove full features array
-        delete cart.product.productId.features;
       }
     }
-
     return cart;
   });
 
@@ -142,6 +134,7 @@ const getMyCart = async (email: string, page: number, limit: number) => {
     },
   };
 };
+
 
 const increaseQuantity = async (email: string, cartId: string) => {
   const isUserExist = await User.findOne({ email });
