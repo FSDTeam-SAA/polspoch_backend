@@ -24,17 +24,17 @@ const addToCart = async (payload: ICart, email: string) => {
     }
 
     // Check if product already in cart
-    const existingCart = await Cart.findOne({
-      userId: user._id,
-      "product.productId": product.productId,
-    });
+    // const existingCart = await Cart.findOne({
+    //   userId: user._id,
+    //   "product.productId": product.productId,
+    // });
 
-    if (existingCart) {
-      await Cart.findByIdAndUpdate(existingCart._id, {
-        $inc: { quantity },
-      });
-      return { message: "Product quantity updated in cart" };
-    }
+    // if (existingCart) {
+    //   await Cart.findByIdAndUpdate(existingCart._id, {
+    //     $inc: { quantity },
+    //   });
+    //   return { message: "Product quantity updated in cart" };
+    // }
 
     const newCart = await Cart.create({
       userId: user._id,
