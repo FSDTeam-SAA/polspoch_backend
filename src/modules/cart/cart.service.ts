@@ -91,8 +91,9 @@ const getMyCart = async (email: string, page: number, limit: number) => {
       select: "firstName lastName",
     })
     .populate({
-      path: "product.productId",
+      path: "product.productId featureId",
     })
+   
     .populate({
       path: "serviceId",
       select: "-__v -createdAt -updatedAt",
