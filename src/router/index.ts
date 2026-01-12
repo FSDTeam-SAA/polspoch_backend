@@ -1,79 +1,84 @@
-import { Router } from "express";
-import authRouter from "../modules/auth/auth.router";
-import cartRouter from "../modules/cart/cart.router";
-import contactRouter from "../modules/contact/contact.router";
-import orderRouter from "../modules/order/order.router";
-import paymentRouter from "../modules/payment/payment.router";
-import productRouter from "../modules/product/product.router";
-import serviceRouter from "../modules/service/service.router";
-import userRouter from "../modules/user/user.router";
-import analyticRouter from "../modules/analytics/analytics.router";
-import modifyService from "../modules/modifyService/modService.routes"
+import { Router } from 'express'
+import authRouter from '../modules/auth/auth.router'
+import cartRouter from '../modules/cart/cart.router'
+import contactRouter from '../modules/contact/contact.router'
+import orderRouter from '../modules/order/order.router'
+import paymentRouter from '../modules/payment/payment.router'
+import productRouter from '../modules/product/product.router'
+import serviceRouter from '../modules/service/service.router'
+import userRouter from '../modules/user/user.router'
+import analyticRouter from '../modules/analytics/analytics.router'
+import modifyService from '../modules/modifyService/modService.routes'
 import modifyRebar from '../modules/templates/rebar/rebar.routes'
 import modifyBending from '../modules/templates/bending/bending.routes'
 import modifyCutting from '../modules/templates/cutting/cutting.routes'
 import shippingPolicy from '../modules/shippingPolicy/shipping.routes'
-const router = Router();
+import shippingAddressRouter from '../modules/shippingAddress/shippingAddress.router'
+const router = Router()
 
 const moduleRoutes = [
   {
-    path: "/user",
+    path: '/user',
     route: userRouter,
   },
   {
-    path: "/auth",
+    path: '/auth',
     route: authRouter,
   },
   {
-    path: "/contact",
+    path: '/contact',
     route: contactRouter,
   },
   {
-    path: "/product",
+    path: '/product',
     route: productRouter,
   },
   {
-    path: "/service",
+    path: '/service',
     route: serviceRouter,
   },
   {
-    path: "/cart",
+    path: '/cart',
     route: cartRouter,
   },
   {
-    path: "/order",
+    path: '/order',
     route: orderRouter,
   },
   {
-    path: "/payment",
+    path: '/payment',
     route: paymentRouter,
   },
   {
-    path: "/analytics",
-    route: analyticRouter
+    path: '/analytics',
+    route: analyticRouter,
   },
-   {
-    path: "/modify-service",
+  {
+    path: '/modify-service',
     route: modifyService,
   },
-   {
-    path: "/rebar",
+  {
+    path: '/rebar',
     route: modifyRebar,
   },
-   {
-    path: "/bending",
+  {
+    path: '/bending',
     route: modifyBending,
   },
   {
-    path: "/cutting",
+    path: '/cutting',
     route: modifyCutting,
   },
-   {
-    path: "/shippingPolicy",
+  {
+    path: '/shippingPolicy',
     route: shippingPolicy,
   },
-];
+  {
+    path: '/shipping-address',
+    route: shippingAddressRouter,
+  },
+]
 
-moduleRoutes.forEach((route) => router.use(route.path, route.route));
+moduleRoutes.forEach((route) => router.use(route.path, route.route))
 
-export default router;
+export default router
