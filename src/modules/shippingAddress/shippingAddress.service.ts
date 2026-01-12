@@ -13,7 +13,7 @@ const createShippingAddress = async (
     throw new AppError('User not found', StatusCodes.NOT_FOUND)
   }
 
-  payload.userId = user._id
+  payload.userId = user._id as any
 
   // If this is marked as default, unset other default addresses
   if (payload.isDefault) {
