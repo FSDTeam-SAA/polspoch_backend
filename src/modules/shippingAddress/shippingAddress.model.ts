@@ -39,9 +39,9 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
       required: [true, 'City is required'],
       trim: true,
     },
-    state: {
+    province: {
       type: String,
-      required: [true, 'State is required'],
+      required: [true, 'Province is required'],
       trim: true,
     },
     postalCode: {

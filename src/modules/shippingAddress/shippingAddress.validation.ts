@@ -28,11 +28,11 @@ const createShippingAddressValidation = z.object({
         required_error: 'City is required',
       })
       .min(2, 'City must be at least 2 characters'),
-    state: z
+    province: z
       .string({
-        required_error: 'State is required',
+        required_error: 'Province is required',
       })
-      .min(2, 'State must be at least 2 characters'),
+      .min(2, 'Province must be at least 2 characters'),
     postalCode: z
       .string({
         required_error: 'Postal code is required',
@@ -67,7 +67,10 @@ const updateShippingAddressValidation = z.object({
       .min(5, 'Street address must be at least 5 characters')
       .optional(),
     city: z.string().min(2, 'City must be at least 2 characters').optional(),
-    state: z.string().min(2, 'State must be at least 2 characters').optional(),
+    province: z
+      .string()
+      .min(2, 'Province must be at least 2 characters')
+      .optional(),
     postalCode: z
       .string()
       .min(3, 'Postal code must be at least 3 characters')

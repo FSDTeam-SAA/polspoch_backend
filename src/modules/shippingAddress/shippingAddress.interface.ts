@@ -9,7 +9,7 @@ export interface IShippingAddress {
   phone: string
   street: string
   city: string
-  state: string
+  province: string
   postalCode: string
   country: string
   landmark?: string
