@@ -12,7 +12,6 @@ export const ProductController = {
     try {
       const files = req.files as Express.Multer.File[]
       const body = req.body
-      
 
       const uploadedImages: { url: string; publickey: string }[] = []
 
@@ -25,7 +24,7 @@ export const ProductController = {
           })
         }
       }
-           // 2️⃣ Handle features
+      // 2️⃣ Handle features
       let features = body.features
       if (typeof features === 'string') {
         // form-data sends features as JSON string
@@ -53,7 +52,7 @@ export const ProductController = {
   getAllProducts: catchAsync(async (req, res) => {
     const { family, search, page, limit } = req.query
 
-    const { data, meta} = await ProductService.getAllProducts({
+    const { data, meta } = await ProductService.getAllProducts({
       family: family as string,
       search: search as string,
       page: Number(page),
@@ -97,20 +96,21 @@ export const ProductController = {
         return
       }
 
-      let newImages = existing.productImage
+      // Allow clients to replace the full image set by passing replaceImages=true
+      const replaceImages =
+        body.replaceImages === 'true' || body.replaceImages === true
+
+      let updatedImages = replaceImages ? [] : [...existing.productImage]
 
       // Handle new uploads
-      if (files && files.length > 0) {
-        for (const file of files) {
-          const uploaded = await uploadToCloudinary(file.path, 'products')
-          newImages.push({
-            url: uploaded.secure_url,
-            publickey: uploaded.public_id,
-          })
+      // Remove all existing images when replacing entirely
+      if (replaceImages && existing.productImage?.length) {
+        for (const img of existing.productImage) {
+          await deleteFromCloudinary(img.publickey)
         }
       }
 
-      // If client sends "deleteImages" array
+      // If client sends "deleteImages" array, drop those first
       if (body.deleteImages) {
         const deleteArr: string[] = JSON.parse(body.deleteImages)
 
@@ -118,15 +118,25 @@ export const ProductController = {
           await deleteFromCloudinary(pid)
         }
 
-        newImages = newImages.filter(
+        updatedImages = updatedImages.filter(
           (img) => !deleteArr.includes(img.publickey)
         )
+      }
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          const uploaded = await uploadToCloudinary(file.path, 'products')
+          updatedImages.push({
+            url: uploaded.secure_url,
+            publickey: uploaded.public_id,
+          })
+        }
       }
 
       const payload = {
         ...body,
         features: JSON.parse(body.features || '[]'),
-        productImage: newImages,
+        productImage: updatedImages,
       }
 
       const updated = await ProductService.updateProduct(id, payload)
@@ -167,7 +177,6 @@ export const ProductController = {
     }
   },
 }
-
 
 export const FamilyController = {
   createFamily: catchAsync(async (req: Request, res: Response) => {
