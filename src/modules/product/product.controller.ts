@@ -96,33 +96,33 @@ export const ProductController = {
         return
       }
 
-      // Allow clients to replace the full image set by passing replaceImages=true
-      const replaceImages =
-        body.replaceImages === 'true' || body.replaceImages === true
+      let updatedImages: { url: string; publickey: string }[] = []
 
-      let updatedImages = replaceImages ? [] : [...existing.productImage]
+      // Handle existingImages field from frontend
+      if (body.existingImages) {
+        const existingImagesArr = JSON.parse(body.existingImages)
 
-      // Handle new uploads
-      // Remove all existing images when replacing entirely
-      if (replaceImages && existing.productImage?.length) {
-        for (const img of existing.productImage) {
+        // Find images to delete (those not in existingImages array)
+        const existingPublicKeys = existingImagesArr.map(
+          (img: any) => img.publickey
+        )
+        const imagesToDelete = existing.productImage.filter(
+          (img) => !existingPublicKeys.includes(img.publickey)
+        )
+
+        // Delete removed images from cloudinary
+        for (const img of imagesToDelete) {
           await deleteFromCloudinary(img.publickey)
         }
+
+        // Keep only the images that were sent in existingImages
+        updatedImages = existingImagesArr
+      } else {
+        // If no existingImages field, keep all existing images
+        updatedImages = [...existing.productImage]
       }
 
-      // If client sends "deleteImages" array, drop those first
-      if (body.deleteImages) {
-        const deleteArr: string[] = JSON.parse(body.deleteImages)
-
-        for (const pid of deleteArr) {
-          await deleteFromCloudinary(pid)
-        }
-
-        updatedImages = updatedImages.filter(
-          (img) => !deleteArr.includes(img.publickey)
-        )
-      }
-
+      // Add new uploaded images
       if (files && files.length > 0) {
         for (const file of files) {
           const uploaded = await uploadToCloudinary(file.path, 'products')
