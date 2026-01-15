@@ -8,18 +8,18 @@ const invoiceDetailsSchema = new Schema(
   {
     name: {
       type: String,
-      required: [true, 'Invoice name is required'],
+      
       trim: true,
     },
     email: {
       type: String,
-      required: [true, 'Invoice email is required'],
+      
       trim: true,
       lowercase: true,
     },
     phone: {
       type: String,
-      required: [true, 'Invoice phone is required'],
+      
       trim: true,
     },
     company: {
@@ -32,27 +32,27 @@ const invoiceDetailsSchema = new Schema(
     },
     address: {
       type: String,
-      required: [true, 'Invoice address is required'],
+      
       trim: true,
     },
     city: {
       type: String,
-      required: [true, 'Invoice city is required'],
+      
       trim: true,
     },
     province: {
       type: String,
-      required: [true, 'Invoice province is required'],
+      
       trim: true,
     },
     postalCode: {
       type: String,
-      required: [true, 'Invoice postal code is required'],
+     
       trim: true,
     },
     country: {
       type: String,
-      required: [true, 'Invoice country is required'],
+     
       trim: true,
     },
   },
@@ -79,18 +79,18 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
     // Shipping contact
     fullName: {
       type: String,
-      required: [true, 'Full name is required'],
+     
       trim: true,
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+     
       trim: true,
       lowercase: true,
     },
     phone: {
       type: String,
-      required: [true, 'Phone number is required'],
+      
       trim: true,
     },
     company: {
@@ -101,27 +101,27 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
     // Address
     street: {
       type: String,
-      required: [true, 'Street address is required'],
+      
       trim: true,
     },
     city: {
       type: String,
-      required: [true, 'City is required'],
+     
       trim: true,
     },
     province: {
       type: String,
-      required: [true, 'Province is required'],
+      
       trim: true,
     },
     postalCode: {
       type: String,
-      required: [true, 'Postal code is required'],
+     
       trim: true,
     },
     country: {
       type: String,
-      required: [true, 'Country is required'],
+      
       trim: true,
     },
     landmark: {
