@@ -12,6 +12,7 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
     orderId: {
       type: Schema.Types.ObjectId,
       ref: 'Order',
+      required: [true, 'Order ID is required'],
     },
     fullName: {
       type: String,
