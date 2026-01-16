@@ -5,7 +5,10 @@ import { ShippingPolicy } from "./shipping.model";
  * GET: Retrieve all shipping policies (Courier and Truck)
  * This is used to populate the Admin Dashboard form.
  */
-export const getAllPolicies = async (req: Request, res: Response):Promise<void>  => {
+export const getAllPolicies = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const policies = await ShippingPolicy.find();
     res.status(200).json(policies);
@@ -14,7 +17,10 @@ export const getAllPolicies = async (req: Request, res: Response):Promise<void> 
   }
 };
 
-export const getPolicyByName = async (req: Request, res: Response):Promise<void>  => {
+export const getPolicyByName = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { methodName } = req.params; // 'courier' or 'truck'
     const policy = await ShippingPolicy.findOne({ methodName });
@@ -33,7 +39,10 @@ export const getPolicyByName = async (req: Request, res: Response):Promise<void>
  * PATCH/PUT: Update a specific policy
  * This allows the admin to change basePrice, extraWeightPrice, etc.
  */
-export const updatePolicy = async (req: Request, res: Response):Promise<void>  => {
+export const updatePolicy = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { methodName } = req.params;
     const updateData = req.body;
@@ -44,7 +53,7 @@ export const updatePolicy = async (req: Request, res: Response):Promise<void>  =
     const updatedPolicy = await ShippingPolicy.findOneAndUpdate(
       { methodName },
       { $set: updateData },
-      { new: true, runValidators: true } // runValidators ensures Enum and types are checked
+      { new: true, runValidators: true }, // runValidators ensures Enum and types are checked
     );
 
     if (!updatedPolicy) {
