@@ -63,6 +63,11 @@ export const ProductService = {
 
     const query: any = {}
 
+      // ✅ Apply family filter ONLY if it's not "all"
+  if (family && family !== "all") {
+    query.family = new Types.ObjectId(family)
+  }
+
     if (family) {
       query.family = new Types.ObjectId(family)
     }
