@@ -207,7 +207,7 @@ export const calculateBendingQuote = async (
 
     // Weight Calculation: (m2) * (Thickness * 7.85)
     const areaPerUnit = (totalWidth / 1000) * (length / 1000);
-    const weightPerUnit = areaPerUnit * (thickness * 8.16);
+    const weightPerUnit = areaPerUnit * (thickness * 7.85);
     const totalWeight = weightPerUnit * units;
 
     const materialTotal = totalWeight * materialPricePerKg;
@@ -446,7 +446,7 @@ export const calculateCuttingQuote = async (
     }
 
     // Weight calculation (Steel density approx 8.16 g/cm³ = 8160 kg/m³)
-    const weightPerUnit = areaPerUnit * (thickness * 7.85);
+    const weightPerUnit = areaPerUnit * (thickness * 8.16);
     const totalWeight = weightPerUnit * units;
 
     const materialTotal = totalWeight * materialPricePerKg;
