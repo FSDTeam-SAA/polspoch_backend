@@ -430,8 +430,9 @@ export const calculateCuttingQuote = async (
       return;
     }
 
-    const materialPricePerKg = (matData as any)[material.toLowerCase()] || 0;
-
+   // UPDATED LINE: Added .trim() to remove accidental spaces
+    const materialKey = material.trim().toLowerCase(); 
+    const materialPricePerKg = (matData as any)[materialKey] || 0;
    // 2. PRODUCT CALCULATION
     let areaPerUnit = 0;
     // Define the actual width being used
