@@ -432,17 +432,17 @@ export const calculateCuttingQuote = async (
 
     const materialPricePerKg = (matData as any)[material.toLowerCase()] || 0;
 
-    // 2. PRODUCT CALCULATION
+   // 2. PRODUCT CALCULATION
     let areaPerUnit = 0;
+    // Define the actual width being used
+    const actualSizeB = sizeB || sizeA; 
 
     if (shapeName === "DISC") {
-      // sizeA = diameter
       const radius = sizeA / 2;
-      areaPerUnit = (Math.PI * radius * radius) / 1000000; // mm² → m²
+      areaPerUnit = (Math.PI * radius * radius) / 1000000;
     } else {
-      // Rectangle or Square fallback
-      const width = sizeB || sizeA; // If no B provided, assume square
-      areaPerUnit = (sizeA * width) / 1000000;
+      // Use sizeA and actualSizeB (handles 300x500 or 300x300)
+      areaPerUnit = (sizeA * actualSizeB) / 1000000;
     }
 
     // Weight calculation (Steel density approx 8.16 g/cm³ = 8160 kg/m³)
@@ -493,7 +493,7 @@ export const calculateCuttingQuote = async (
         shape: shapeName,
         totalWeight: Number(totalWeight.toFixed(2)),
         sizeA,
-        sizeB: sizeB || null,
+        sizeB: actualSizeB,
         units,
         thickness,
         material,
