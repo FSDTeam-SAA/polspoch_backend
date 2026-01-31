@@ -205,9 +205,9 @@ export const calculateBendingQuote = async (
       (sizeE || 0) +
       (sizeF || 0);
 
-    // Weight Calculation: (m2) * (Thickness * 7.85)
+    // Weight Calculation: (m2) * (Thickness * 8.16) - Steel density approx 8.16 g/cm³ = 8160 kg/m³
     const areaPerUnit = (totalWidth / 1000) * (length / 1000);
-    const weightPerUnit = areaPerUnit * (thickness * 7.85);
+    const weightPerUnit = areaPerUnit * (thickness * 8.16);
     const totalWeight = weightPerUnit * units;
 
     const materialTotal = totalWeight * materialPricePerKg;
@@ -430,13 +430,13 @@ export const calculateCuttingQuote = async (
       return;
     }
 
-   // UPDATED LINE: Added .trim() to remove accidental spaces
-    const materialKey = material.trim().toLowerCase(); 
+    // UPDATED LINE: Added .trim() to remove accidental spaces
+    const materialKey = material.trim().toLowerCase();
     const materialPricePerKg = (matData as any)[materialKey] || 0;
-   // 2. PRODUCT CALCULATION
+    // 2. PRODUCT CALCULATION
     let areaPerUnit = 0;
     // Define the actual width being used
-    const actualSizeB = sizeB || sizeA; 
+    const actualSizeB = sizeB || sizeA;
 
     if (shapeName === "DISC") {
       const radius = sizeA / 2;
