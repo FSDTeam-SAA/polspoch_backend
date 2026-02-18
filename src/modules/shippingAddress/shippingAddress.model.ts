@@ -1,6 +1,67 @@
 import { model, Schema } from 'mongoose'
 import { IShippingAddress } from './shippingAddress.interface'
 
+/**
+ * Invoice Details Sub Schema
+ */
+const invoiceDetailsSchema = new Schema(
+  {
+    name: {
+      type: String,
+      
+      trim: true,
+    },
+    email: {
+      type: String,
+      
+      trim: true,
+      lowercase: true,
+    },
+    phone: {
+      type: String,
+      
+      trim: true,
+    },
+    company: {
+      type: String,
+      trim: true,
+    },
+    vat: {
+      type: String,
+      trim: true,
+    },
+    address: {
+      type: String,
+      
+      trim: true,
+    },
+    city: {
+      type: String,
+      
+      trim: true,
+    },
+    province: {
+      type: String,
+      
+      trim: true,
+    },
+    postalCode: {
+      type: String,
+     
+      trim: true,
+    },
+    country: {
+      type: String,
+     
+      trim: true,
+    },
+  },
+  { _id: false } // embedded doc, no separate _id
+)
+
+/**
+ * Shipping Address Schema
+ */
 const shippingAddressSchema = new Schema<IShippingAddress>(
   {
     userId: {
@@ -14,51 +75,76 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
       ref: 'Order',
       required: [true, 'Order ID is required'],
     },
+
+    // Shipping contact
     fullName: {
       type: String,
-      required: [true, 'Full name is required'],
+     
       trim: true,
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+     
       trim: true,
       lowercase: true,
     },
     phone: {
       type: String,
-      required: [true, 'Phone number is required'],
+      
       trim: true,
     },
+    company: {
+      type: String,
+      trim: true,
+    },
+
+    // Address
     street: {
       type: String,
-      required: [true, 'Street address is required'],
+      
       trim: true,
     },
     city: {
       type: String,
-      required: [true, 'City is required'],
+     
       trim: true,
     },
     province: {
       type: String,
-      required: [true, 'Province is required'],
+      
       trim: true,
     },
     postalCode: {
       type: String,
-      required: [true, 'Postal code is required'],
+     
       trim: true,
     },
     country: {
       type: String,
-      required: [true, 'Country is required'],
+      
       trim: true,
     },
     landmark: {
       type: String,
       trim: true,
     },
+
+    // Extra info
+    shippingComment: {
+      type: String,
+      trim: true,
+    },
+    deliveryInstructions: {
+      type: String,
+      trim: true,
+    },
+
+    // Invoice
+    invoiceDetails: {
+      type: invoiceDetailsSchema,
+    },
+
+    // Meta
     isDefault: {
       type: Boolean,
       default: false,
@@ -68,20 +154,20 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
       enum: ['home', 'office', 'other'],
       default: 'home',
     },
-    deliveryInstructions: {
-      type: String,
-      trim: true,
-    },
   },
   {
     timestamps: true,
   }
 )
 
-// Index for faster queries
+/**
+ * Indexes
+ */
 shippingAddressSchema.index({ userId: 1, isDefault: 1 })
 
-// Ensure only one default address per user
+/**
+ * Ensure only one default address per user
+ */
 shippingAddressSchema.pre('save', async function (next) {
   if (this.isDefault) {
     await ShippingAddress.updateMany(
