@@ -71,7 +71,12 @@ router.post(
   async (req, res) => {
     const shippingAddressData = req.body
     // Create a new shipping address entry in the database
-    const newShippingAddress = await shippingAddressController.createShippingAddress(shippingAddressData, req.user.id, req.user.role)
+    const newShippingAddress =
+      await shippingAddressController.createShippingAddress(
+        shippingAddressData,
+        req.user.id,
+        req.user.role
+      )
     res.status(201).json(newShippingAddress)
   }
 )

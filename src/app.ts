@@ -21,6 +21,8 @@ const corsOptions = {
     'http://localhost:3001',
     'https://polspoch-website.vercel.app',
     'https://polspoch-dashboard.vercel.app',
+    'https://hierroamedida.com',
+    'https://admin.hierroamedida.com',
   ],
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   credentials: true,
