@@ -112,7 +112,7 @@ export const ProductService = {
 
     const results: any[] = [];
 
-    // CSV read করা
+    // CSV read
     await new Promise((resolve, reject) => {
       fs.createReadStream(file.path)
         .pipe(csv())
@@ -123,30 +123,55 @@ export const ProductService = {
         .on("error", reject);
     });
 
-    let updateCount = 0;
+    let successCount = 0;
+    const errors: any[] = [];
 
     for (const row of results) {
       const { productName, reference, miterPerUnitPrice } = row;
 
-      const product = await Product.findOne({ productName });
+      try {
+        const product = await Product.findOne({ productName });
 
-      if (!product) continue;
+        if (!product) {
+          errors.push({
+            productName,
+            reference,
+            reason: "Product not found",
+          });
+          continue;
+        }
 
-      const feature = product.features.find(
-        (f: any) => f.reference === reference,
-      );
+        const feature = product.features.find(
+          (f: any) => f.reference === reference,
+        );
 
-      if (!feature) continue;
+        if (!feature) {
+          errors.push({
+            productName,
+            reference,
+            reason: "Reference not found in features",
+          });
+          continue;
+        }
 
-      feature.miterPerUnitPrice = Number(miterPerUnitPrice);
+        feature.miterPerUnitPrice = Number(miterPerUnitPrice);
+        await product.save();
 
-      await product.save();
-      updateCount++;
+        successCount++;
+      } catch (err: any) {
+        errors.push({
+          productName,
+          reference,
+          reason: err.message || "Unknown error",
+        });
+      }
     }
 
     return {
       totalRows: results.length,
-      updated: updateCount,
+      success: successCount,
+      failed: errors.length,
+      errors,
     };
   },
 };
