@@ -1,17 +1,19 @@
-import { Family, Product } from './product.model'
-import { IProduct } from './product.interface'
-import { Types } from 'mongoose'
+import csv from "csv-parser";
+import fs from "fs";
+import { Types } from "mongoose";
+import { IProduct } from "./product.interface";
+import { Family, Product } from "./product.model";
 
 interface IProductFilters {
-  family?: string
-  search?: string
-  page?: number
-  limit?: number
+  family?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
 }
 
 export const ProductService = {
   createProduct: async (payload: Partial<IProduct>) => {
-    return await Product.create(payload)
+    return await Product.create(payload);
   },
 
   // getAllProducts: async (filters: {
@@ -55,30 +57,29 @@ export const ProductService = {
   //   }
   // },
   getAllProducts: async (filters: IProductFilters) => {
-    const { family, search } = filters
+    const { family, search } = filters;
 
-    const page = filters.page || 1
-    const limit = filters.limit || 20
-    const skip = (page - 1) * limit
+    const page = filters.page || 1;
+    const limit = filters.limit || 20;
+    const skip = (page - 1) * limit;
 
-    const query: any = {}
-
+    const query: any = {};
 
     if (family) {
-      query.family = new Types.ObjectId(family)
+      query.family = new Types.ObjectId(family);
     }
 
     if (search) {
-      query.productName = { $regex: search, $options: 'i' }
+      query.productName = { $regex: search, $options: "i" };
     }
 
     const products = await Product.find(query)
-      .populate('family') 
+      .populate("family")
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 });
 
-    const total = await Product.countDocuments(query)
+    const total = await Product.countDocuments(query);
 
     return {
       meta: {
@@ -88,41 +89,86 @@ export const ProductService = {
         totalPages: Math.ceil(total / limit),
       },
       data: products,
-    }
+    };
   },
 
   getSingleProduct: async (id: string) => {
-    return await Product.findById(id).populate('family')
+    return await Product.findById(id).populate("family");
   },
 
   updateProduct: async (id: string, payload: Partial<IProduct>) => {
-    return await Product.findByIdAndUpdate(id, payload, { new: true })
+    return await Product.findByIdAndUpdate(id, payload, { new: true });
   },
 
   deleteProduct: async (id: string) => {
-    return await Product.findByIdAndDelete(id)
+    return await Product.findByIdAndDelete(id);
   },
-}
 
+  //! multiple Product Update upload in there.
+  multipleProductUpdate: async (file: any) => {
+    if (!file) {
+      throw new Error("CSV file is required");
+    }
+
+    const results: any[] = [];
+
+    // CSV read করা
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(file.path)
+        .pipe(csv())
+        .on("data", (data) => {
+          results.push(data);
+        })
+        .on("end", resolve)
+        .on("error", reject);
+    });
+
+    let updateCount = 0;
+
+    for (const row of results) {
+      const { productName, reference, miterPerUnitPrice } = row;
+
+      const product = await Product.findOne({ productName });
+
+      if (!product) continue;
+
+      const feature = product.features.find(
+        (f: any) => f.reference === reference,
+      );
+
+      if (!feature) continue;
+
+      feature.miterPerUnitPrice = Number(miterPerUnitPrice);
+
+      await product.save();
+      updateCount++;
+    }
+
+    return {
+      totalRows: results.length,
+      updated: updateCount,
+    };
+  },
+};
 
 export const FamilyService = {
   createFamily: async (payload: any) => {
-    return await Family.create(payload)
+    return await Family.create(payload);
   },
 
   getAllFamilies: async () => {
-    return await Family.find().sort({ createdAt: -1 })
+    return await Family.find().sort({ createdAt: -1 });
   },
 
   getSingleFamily: async (id: string) => {
-    return await Family.findById(id)
+    return await Family.findById(id);
   },
 
   updateFamily: async (id: string, payload: any) => {
-    return await Family.findByIdAndUpdate(id, payload, { new: true })
+    return await Family.findByIdAndUpdate(id, payload, { new: true });
   },
 
   deleteFamily: async (id: string) => {
-    return await Family.findByIdAndDelete(id)
+    return await Family.findByIdAndDelete(id);
   },
-}
+};
