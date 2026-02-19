@@ -1,33 +1,43 @@
-import { Router } from 'express'
-import { FamilyController, ProductController } from './product.controller'
-import { upload } from '../../middleware/multer.middleware'
+import { Router } from "express";
+import { upload } from "../../middleware/multer.middleware";
+import { FamilyController, ProductController } from "./product.controller";
 
-const router = Router()
+const router = Router();
 
 router.post(
-  '/add-product',
-  upload.array('productImage', 10),
-  ProductController.createProduct
-)
-
-router.get('/', ProductController.getAllProducts)
-router.get('/:id', ProductController.getSingleProduct)
+  "/add-product",
+  upload.array("productImage", 10),
+  ProductController.createProduct,
+);
 
 router.put(
-  '/update/:id',
-  upload.array('productImage', 10),
-  ProductController.updateProduct
-)
+  "/multiple-update",
+  upload.single("file"),
+  ProductController.multipleProductUpdate,
+);
 
-router.delete('/:id', ProductController.deleteProduct)
+router.get("/", ProductController.getAllProducts);
+router.get("/:id", ProductController.getSingleProduct);
 
-router.post('/family/create', upload.single('img'), FamilyController.createFamily)
+router.put(
+  "/update/:id",
+  upload.array("productImage", 10),
+  ProductController.updateProduct,
+);
 
-router.get('/family/all', FamilyController.getAllFamilies)
-router.get('/family/:id', FamilyController.getSingleFamily)
+router.delete("/:id", ProductController.deleteProduct);
 
-router.put('/family/:id', upload.single('img'), FamilyController.updateFamily)
+router.post(
+  "/family/create",
+  upload.single("img"),
+  FamilyController.createFamily,
+);
 
-router.delete('/family/:id', FamilyController.deleteFamily)
+router.get("/family/all", FamilyController.getAllFamilies);
+router.get("/family/:id", FamilyController.getSingleFamily);
 
-export default router
+router.put("/family/:id", upload.single("img"), FamilyController.updateFamily);
+
+router.delete("/family/:id", FamilyController.deleteFamily);
+
+export default router;
