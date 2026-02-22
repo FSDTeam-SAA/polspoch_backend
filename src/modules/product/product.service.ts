@@ -75,7 +75,10 @@ export const ProductService = {
 
     return {
       meta: {
+        page: 1,
+        limit: total,
         total,
+        totalPages: 1,
       },
       data: products,
     };
