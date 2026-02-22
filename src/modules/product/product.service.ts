@@ -7,8 +7,6 @@ import { Family, Product } from "./product.model";
 interface IProductFilters {
   family?: string;
   search?: string;
-  page?: number;
-  limit?: number;
 }
 
 export const ProductService = {
@@ -59,10 +57,6 @@ export const ProductService = {
   getAllProducts: async (filters: IProductFilters) => {
     const { family, search } = filters;
 
-    const page = filters.page || 1;
-    const limit = filters.limit || 20;
-    const skip = (page - 1) * limit;
-
     const query: any = {};
 
     if (family) {
@@ -75,18 +69,13 @@ export const ProductService = {
 
     const products = await Product.find(query)
       .populate("family")
-      .skip(skip)
-      .limit(limit)
       .sort({ createdAt: -1 });
 
     const total = await Product.countDocuments(query);
 
     return {
       meta: {
-        page,
-        limit,
         total,
-        totalPages: Math.ceil(total / limit),
       },
       data: products,
     };

@@ -50,13 +50,11 @@ export const ProductController = {
   },
 
   getAllProducts: catchAsync(async (req, res) => {
-    const { family, search, page, limit } = req.query;
+    const { family, search } = req.query;
 
     const { data, meta } = await ProductService.getAllProducts({
       family: family as string,
       search: search as string,
-      page: Number(page),
-      limit: Number(limit),
     });
 
     sendResponse(res, {
