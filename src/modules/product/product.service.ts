@@ -14,46 +14,6 @@ export const ProductService = {
     return await Product.create(payload);
   },
 
-  // getAllProducts: async (filters: {
-  //   family?: string
-  //   search?: string
-  //   page?: number
-  //   limit?: number
-  // }) => {
-  //   const { family, search } = filters
-
-  //   const page = filters.page || 1
-  //   const limit = filters.limit || 20
-  //   const skip = (page - 1) * limit
-
-  //   // Build dynamic query
-  //   const query: any = {}
-
-  //   if (family) {
-  //     query.family = family
-  //   }
-
-  //   if (search) {
-  //     query.productName = { $regex: search, $options: 'i' } // case-insensitive regex
-  //   }
-
-  //   const products = await Product.find(query)
-  //     .skip(skip)
-  //     .limit(limit)
-  //     .sort({ createdAt: -1 })
-
-  //   const total = await Product.countDocuments(query)
-
-  //   return {
-  //     meta: {
-  //       page,
-  //       limit,
-  //       total,
-  //       totalPages: Math.ceil(total / limit),
-  //     },
-  //     data: products,
-  //   }
-  // },
   getAllProducts: async (filters: IProductFilters) => {
     const { family, search } = filters;
 
@@ -73,15 +33,7 @@ export const ProductService = {
 
     const total = await Product.countDocuments(query);
 
-    return {
-      meta: {
-        page: 1,
-        limit: total,
-        total,
-        totalPages: 1,
-      },
-      data: products,
-    };
+    return products;
   },
 
   getSingleProduct: async (id: string) => {

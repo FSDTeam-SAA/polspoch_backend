@@ -52,7 +52,7 @@ export const ProductController = {
   getAllProducts: catchAsync(async (req, res) => {
     const { family, search } = req.query;
 
-    const { data, meta } = await ProductService.getAllProducts({
+    const result = await ProductService.getAllProducts({
       family: family as string,
       search: search as string,
     });
@@ -61,8 +61,7 @@ export const ProductController = {
       statusCode: 200,
       success: true,
       message: "Products fetched successfully",
-      data,
-      meta,
+      data: result,
     });
   }),
 
