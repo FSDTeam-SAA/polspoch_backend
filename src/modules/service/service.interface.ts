@@ -4,7 +4,8 @@ export interface IService {
   serviceType: "rebar" | "bending" | "cutting"; // Type of service
 
   // Common fields
- userId?: Types.ObjectId;
+  userId?: Types.ObjectId;
+  guestId?: string;
   templateName?: string; // Optional template name
   units?: number;
   price?: number;

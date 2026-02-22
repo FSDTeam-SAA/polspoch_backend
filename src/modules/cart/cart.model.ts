@@ -3,8 +3,9 @@ import { ICart } from "./cart.interface";
 
 const cartModel = new Schema<ICart>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User" },
-    
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
+    guestId: { type: String, required: false },
+
     // Existing product structure for standard shop items
     product: {
       productId: { type: Types.ObjectId, ref: "Product" },
@@ -30,14 +31,14 @@ const cartModel = new Schema<ICart>(
       sizeD: { type: Number },
       sizeE: { type: Number },
       sizeF: { type: Number },
-      
+
       // 3. Service Specifics
       length: { type: Number },      // Bending total length
       totalLength: { type: Number }, // Rebar total calculated length
       totalWidth: { type: Number },  // Cutting/Bending total width
       internalCuts: { type: Number },// Cutting only
       numBends: { type: Number },     // Bending only
-      
+
       // 4. Degrees (Nested to match your Bending response)
       degrees: {
         degree1: { type: Number },
@@ -59,9 +60,9 @@ const cartModel = new Schema<ICart>(
     },
 
     serviceId: { type: Schema.Types.ObjectId, ref: "Service" },
-    type: { 
-      type: String, 
-    
+    type: {
+      type: String,
+
     },
     quantity: { type: Number },
     totalAmount: { type: Number }, // This should be the 'finalQuote'

@@ -6,13 +6,28 @@ import { User } from "../user/user.model";
 import Cart from "./cart.model";
 import { ICart } from "./cart.interface";
 
-const addToCart = async (payload: ICart, email: string) => {
-  const { product,serviceData, quantity = 1, type, totalAmount } = payload;
+const addToCart = async (
+  payload: ICart,
+  identity: { email?: string; guestId?: string }
+) => {
+  const { product, serviceData, quantity = 1, type, totalAmount } = payload;
 
-  const user = await User.findOne({ email });
-  if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+  let userId = undefined;
+  if (identity.email) {
+    const user = await User.findOne({ email: identity.email });
+    if (user) userId = user._id;
+  }
+
+  const identityQuery = userId ? { userId } : { guestId: identity.guestId };
+
+  if (!userId && !identity.guestId) {
+    throw new AppError(
+      "Identification required (User or Guest ID)",
+      StatusCodes.BAD_REQUEST
+    );
+  }
+
   // 🟦 ADD PRODUCT TO CART
-
   if (type === "product") {
     if (!product?.productId) {
       throw new AppError("Product ID missing", StatusCodes.BAD_REQUEST);
@@ -23,21 +38,9 @@ const addToCart = async (payload: ICart, email: string) => {
       throw new AppError("Product not found", StatusCodes.NOT_FOUND);
     }
 
-    // Check if product already in cart
-    // const existingCart = await Cart.findOne({
-    //   userId: user._id,
-    //   "product.productId": product.productId,
-    // });
-
-    // if (existingCart) {
-    //   await Cart.findByIdAndUpdate(existingCart._id, {
-    //     $inc: { quantity },
-    //   });
-    //   return { message: "Product quantity updated in cart" };
-    // }
-
     const newCart = await Cart.create({
-      userId: user._id,
+      userId,
+      guestId: userId ? undefined : identity.guestId,
       product: {
         productId: product.productId,
         featuredId: product.featuredId,
@@ -56,36 +59,52 @@ const addToCart = async (payload: ICart, email: string) => {
   // -------------------------------------------------------
   // 🟩 ADD SERVICE TO CART
   // -------------------------------------------------------
-  // 🟩 CASE 2: SERVICE (Rebar, Bending, or Cutting)
   if (type === "service") {
-    // We expect serviceData to contain the specific name (e.g., serviceData.serviceType = "bending")
     if (!serviceData?.serviceType) {
-      throw new AppError("Specific service type (rebar/bending/cutting) is required in serviceData", StatusCodes.BAD_REQUEST);
+      throw new AppError(
+        "Specific service type (rebar/bending/cutting) is required in serviceData",
+        StatusCodes.BAD_REQUEST
+      );
     }
 
-    // Always create a new entry for services to maintain unique custom dimensions
     const newCart = await Cart.create({
-      userId: user._id,
-     
-      serviceData, // This now contains shapeNamar/bending/cutting)
+      userId,
+      guestId: userId ? undefined : identity.guestId,
+      serviceData,
       type: "service",
       quantity,
-      totalAmount, 
+      totalAmount,
     });
 
     return newCart;
   }
 
-  throw new AppError("Invalid cart type. Use 'product' or 'service'", StatusCodes.BAD_REQUEST);
+  throw new AppError(
+    "Invalid cart type. Use 'product' or 'service'",
+    StatusCodes.BAD_REQUEST
+  );
 };
 
-const getMyCart = async (email: string, page: number, limit: number) => {
-  const user = await User.findOne({ email });
-  if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+const getMyCart = async (
+  identity: { email?: string; guestId?: string },
+  page: number,
+  limit: number
+) => {
+  let query: any = {};
+
+  if (identity.email) {
+    const user = await User.findOne({ email: identity.email });
+    if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+    query.userId = user._id;
+  } else if (identity.guestId) {
+    query.guestId = identity.guestId;
+  } else {
+    throw new AppError("Identification required", StatusCodes.BAD_REQUEST);
+  }
 
   const skip = (page - 1) * limit;
 
-  const carts = await Cart.find({ userId: user._id })
+  const carts = await Cart.find(query)
     .populate({
       path: "userId",
       select: "firstName lastName",
@@ -101,10 +120,8 @@ const getMyCart = async (email: string, page: number, limit: number) => {
     .limit(limit)
     .sort({ createdAt: -1 });
 
-  // Convert mongoose docs to JSON
   const cleanCarts = JSON.parse(JSON.stringify(carts));
 
-  // Attach selectedFeature from features array
   const formatted = cleanCarts.map((cart: any) => {
     if (cart.type === "product" && cart.product?.productId) {
       const productDoc = cart.product.productId;
@@ -114,15 +131,13 @@ const getMyCart = async (email: string, page: number, limit: number) => {
         const matchedFeature = productDoc.features.find(
           (f: any) => f._id === featuredId || f._id === featuredId?._id
         );
-
-        // Attach selectedFeature without deleting anything
         cart.product.selectedFeature = matchedFeature || null;
       }
     }
     return cart;
   });
 
-  const total = await Cart.countDocuments({ userId: user._id });
+  const total = await Cart.countDocuments(query);
 
   return {
     data: formatted,
@@ -135,13 +150,22 @@ const getMyCart = async (email: string, page: number, limit: number) => {
   };
 };
 
-
-const increaseQuantity = async (email: string, cartId: string) => {
-  const isUserExist = await User.findOne({ email });
-  if (!isUserExist) throw new AppError("User not found", StatusCodes.NOT_FOUND);
-
+const increaseQuantity = async (
+  identity: { email?: string; guestId?: string },
+  cartId: string
+) => {
   const isCartExist = await Cart.findById(cartId);
   if (!isCartExist) throw new AppError("Cart not found", StatusCodes.NOT_FOUND);
+
+  // Security check: ensure the cart belongs to the user/guest
+  if (identity.email) {
+    const user = await User.findOne({ email: identity.email });
+    if (!user || isCartExist.userId?.toString() !== user._id.toString()) {
+      throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
+    }
+  } else if (isCartExist.guestId !== identity.guestId) {
+    throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
+  }
 
   const updatedCart = await Cart.findByIdAndUpdate(
     cartId,
@@ -152,14 +176,40 @@ const increaseQuantity = async (email: string, cartId: string) => {
   return updatedCart;
 };
 
-const deletedCart = async (email: string, cartId: string) => {
-  const isUserExist = await User.findOne({ email });
-  if (!isUserExist) throw new AppError("User not found", StatusCodes.NOT_FOUND);
-
+const deletedCart = async (
+  identity: { email?: string; guestId?: string },
+  cartId: string
+) => {
   const isCartExist = await Cart.findById(cartId);
   if (!isCartExist) throw new AppError("Cart not found", StatusCodes.NOT_FOUND);
 
+  // Security check
+  if (identity.email) {
+    const user = await User.findOne({ email: identity.email });
+    if (!user || isCartExist.userId?.toString() !== user._id.toString()) {
+      throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
+    }
+  } else if (isCartExist.guestId !== identity.guestId) {
+    throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
+  }
+
   await Cart.findByIdAndDelete(cartId);
+};
+
+const mergeCart = async (email: string, guestId: string) => {
+  const user = await User.findOne({ email });
+  if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+
+  if (!guestId) return;
+
+  // Transfer all guest items to user and remove the guestId
+  await Cart.updateMany(
+    { guestId },
+    {
+      $set: { userId: user._id },
+      $unset: { guestId: 1 }
+    }
+  );
 };
 
 const cartService = {
@@ -167,6 +217,7 @@ const cartService = {
   getMyCart,
   deletedCart,
   increaseQuantity,
+  mergeCart,
 };
 
 export default cartService;

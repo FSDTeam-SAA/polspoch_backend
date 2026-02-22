@@ -9,11 +9,14 @@ const auth = (...roles: string[]) => {
     try {
       const extractedToken = req.headers.authorization;
       const token = extractedToken?.split(" ")[1];
+
       if (!token) {
-        throw new AppError("Invalid token", StatusCodes.UNAUTHORIZED);
+        // If no token is provided, we allow it to pass (for guest access).
+        // Controllers will handle the logic based on whether req.user exists.
+        return next();
       }
 
-      const verifyUserData = verifyToken(token, config.JWT_SECRET as string);
+      const verifyUserData = verifyToken(token, config.JWT_SECRET as string) as any;
 
       req.user = verifyUserData;
 

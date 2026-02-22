@@ -14,6 +14,12 @@ router.put(
   cartController.increaseQuantity
 );
 
+router.post(
+  "/merge-cart",
+  auth(USER_ROLE.USER),
+  cartController.mergeCart
+);
+
 router.delete(
   "/delete-cart/:cartId",
   auth(USER_ROLE.USER),

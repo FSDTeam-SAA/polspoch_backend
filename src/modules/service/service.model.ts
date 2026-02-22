@@ -3,16 +3,17 @@ import { IService } from "./service.interface";
 
 const ServiceSchema = new Schema<IService>({
 
-  serviceType: { 
-    type: String, 
-    required: true, 
-    enum: ["rebar", "bending", "cutting"] 
+  serviceType: {
+    type: String,
+    required: true,
+    enum: ["rebar", "bending", "cutting"]
   },
-  userId: { 
-    type: Schema.Types.ObjectId, 
-    ref: "User", 
-    required: true 
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: false
   },
+  guestId: { type: String, required: false },
   // Common fields
   templateName: { type: String },
   units: { type: Number },

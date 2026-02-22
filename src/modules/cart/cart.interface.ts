@@ -2,8 +2,9 @@
 import { Document, Types } from "mongoose";
 
 export interface ICart extends Document {
-  userId: Types.ObjectId;
-  
+  userId?: Types.ObjectId;
+  guestId?: string;
+
   // Existing Product Structure
   product?: {
     productId?: Types.ObjectId;
@@ -21,7 +22,7 @@ export interface ICart extends Document {
     thickness?: number;  // Cutting/Bending
     diameter?: number;   // Rebar
     units?: number;
-    serviceType?: string 
+    serviceType?: string
     // Dimension fields
     sizeA?: number;
     sizeB?: number;
@@ -29,7 +30,7 @@ export interface ICart extends Document {
     sizeD?: number;
     sizeE?: number;
     sizeF?: number;
-    
+
     // Specific metrics
     length?: number;      // Bending Length
     totalLength?: number; // Rebar Length
