@@ -5,12 +5,12 @@ import cartController from "./cart.controller";
 
 const router = Router();
 
-router.post("/add-cart", auth(USER_ROLE.USER), cartController.addToCart);
-router.get("/my-cart", auth(USER_ROLE.USER), cartController.getMyCart);
+router.post("/add-cart", auth(), cartController.addToCart);
+router.get("/my-cart", auth(), cartController.getMyCart);
 
 router.put(
   "/increase-quantity/:cartId",
-  auth(USER_ROLE.USER),
+  auth(),
   cartController.increaseQuantity
 );
 
@@ -22,7 +22,7 @@ router.post(
 
 router.delete(
   "/delete-cart/:cartId",
-  auth(USER_ROLE.USER),
+  auth(),
   cartController.deletedCart
 );
 
