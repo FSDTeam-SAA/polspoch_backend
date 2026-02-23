@@ -10,7 +10,7 @@ const auth = (...roles: string[]) => {
       const extractedToken = req.headers.authorization;
       const token = extractedToken?.split(" ")[1];
 
-      if (!token) {
+      if (!token || token === 'null' || token === 'undefined') {
         // If no token is provided, we allow it to pass (for guest access).
         // Controllers will handle the logic based on whether req.user exists.
         return next();
