@@ -67,18 +67,9 @@ router.get(
 
 router.post(
   '/shipping-address',
+  auth(USER_ROLE.USER),
   validateRequest(shippingAddressValidation.createShippingAddressValidation),
-  async (req, res) => {
-    const shippingAddressData = req.body
-    // Create a new shipping address entry in the database
-    const newShippingAddress =
-      await shippingAddressController.createShippingAddress(
-        shippingAddressData,
-        req.user.id,
-        req.user.role
-      )
-    res.status(201).json(newShippingAddress)
-  }
+  shippingAddressController.createShippingAddress
 )
 
 const shippingAddressRouter = router

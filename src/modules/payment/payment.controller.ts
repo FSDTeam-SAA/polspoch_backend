@@ -4,7 +4,7 @@ import sendResponse from "../../utils/sendResponse";
 import paymentService from "./payment.service";
 
 const createPayment = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await paymentService.createPayment(req.body, email);
 
   sendResponse(res, {
@@ -16,7 +16,7 @@ const createPayment = catchAsync(async (req, res) => {
 });
 
 const getMyPayments = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await paymentService.getMyPayments(email);
 
   sendResponse(res, {

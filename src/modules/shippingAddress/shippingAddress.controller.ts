@@ -4,7 +4,7 @@ import sendResponse from '../../utils/sendResponse'
 import shippingAddressService from './shippingAddress.service'
 
 const createShippingAddress = catchAsync(async (req, res) => {
-  const { email } = req.user
+  const { email } = req.user!
   const result = await shippingAddressService.createShippingAddress(
     req.body,
     email
@@ -19,7 +19,7 @@ const createShippingAddress = catchAsync(async (req, res) => {
 })
 
 const getMyShippingAddresses = catchAsync(async (req, res) => {
-  const { email } = req.user
+  const { email } = req.user!
   const result = await shippingAddressService.getMyShippingAddresses(email)
 
   sendResponse(res, {
@@ -31,7 +31,7 @@ const getMyShippingAddresses = catchAsync(async (req, res) => {
 })
 
 const getShippingAddressById = catchAsync(async (req, res) => {
-  const { email } = req.user
+  const { email } = req.user!
   const { addressId } = req.params
   const result = await shippingAddressService.getShippingAddressById(
     addressId,
@@ -47,7 +47,7 @@ const getShippingAddressById = catchAsync(async (req, res) => {
 })
 
 const getDefaultAddress = catchAsync(async (req, res) => {
-  const { email } = req.user
+  const { email } = req.user!
   const result = await shippingAddressService.getDefaultAddress(email)
 
   sendResponse(res, {
@@ -59,7 +59,7 @@ const getDefaultAddress = catchAsync(async (req, res) => {
 })
 
 const updateShippingAddress = catchAsync(async (req, res) => {
-  const { email } = req.user
+  const { email } = req.user!
   const { addressId } = req.params
   const result = await shippingAddressService.updateShippingAddress(
     addressId,
@@ -76,7 +76,7 @@ const updateShippingAddress = catchAsync(async (req, res) => {
 })
 
 const setDefaultAddress = catchAsync(async (req, res) => {
-  const { email } = req.user
+  const { email } = req.user!
   const { addressId } = req.params
   const result = await shippingAddressService.setDefaultAddress(
     addressId,
@@ -92,7 +92,7 @@ const setDefaultAddress = catchAsync(async (req, res) => {
 })
 
 const deleteShippingAddress = catchAsync(async (req, res) => {
-  const { email } = req.user
+  const { email } = req.user!
   const { addressId } = req.params
   await shippingAddressService.deleteShippingAddress(addressId, email)
 

@@ -27,7 +27,7 @@ const registerUser = catchAsync(async (req, res) => {
 });
 
 const verifyEmail = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await userService.verifyEmail(email, req.body);
 
   sendResponse(res, {
@@ -39,7 +39,7 @@ const verifyEmail = catchAsync(async (req, res) => {
 });
 
 const resendOtpCode = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await userService.resendOtpCode(email);
 
   sendResponse(res, {
@@ -62,7 +62,7 @@ const getAllUsers = catchAsync(async (req, res) => {
 });
 
 const getMyProfile = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
 
   const result = await userService.getMyProfile(email);
   sendResponse(res, {
@@ -74,7 +74,7 @@ const getMyProfile = catchAsync(async (req, res) => {
 });
 
 const updateUserProfile = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await userService.updateUserProfile(req.body, email, req.file);
 
   sendResponse(res, {
@@ -86,7 +86,7 @@ const updateUserProfile = catchAsync(async (req, res) => {
 });
 
 const updateUserProfileImage = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await userService.updateUserProfileImage(email, req.file);
 
   sendResponse(res, {

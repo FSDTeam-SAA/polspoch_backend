@@ -11,9 +11,11 @@ const auth = (...roles: string[]) => {
       const token = extractedToken?.split(" ")[1];
 
       if (!token || token === 'null' || token === 'undefined') {
-        // If no token is provided, we allow it to pass (for guest access).
-        // Controllers will handle the logic based on whether req.user exists.
-        return next();
+        // If no token is provided, we allow it to pass only if no specific roles are required (guest access).
+        if (roles.length === 0) {
+          return next();
+        }
+        throw new AppError("You are not authorized!", StatusCodes.UNAUTHORIZED);
       }
 
       const verifyUserData = verifyToken(token, config.JWT_SECRET as string) as any;

@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import { Order } from "./order.model";
 
 const createOrder = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await orderService.createNewOrder(req.body, email);
 
   sendResponse(res, {
@@ -19,7 +19,7 @@ const createOrder = catchAsync(async (req, res) => {
 });
 
 const getMyOrders = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
 
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
@@ -66,33 +66,33 @@ const updateOrderStatus = catchAsync(async (req, res) => {
   });
 });
 
- const   deleteOrders = catchAsync(async (req,res) => {
-    
-      const { orderIds } = req.body
+const deleteOrders = catchAsync(async (req, res) => {
 
-      if (!orderIds) {
-        throw new AppError('Order IDs are required', StatusCodes.BAD_REQUEST)
-      }
+  const { orderIds } = req.body
 
-      const idsArray = Array.isArray(orderIds)
-        ? orderIds
-        : orderIds.split(',')
+  if (!orderIds) {
+    throw new AppError('Order IDs are required', StatusCodes.BAD_REQUEST)
+  }
 
-      const objectIds = idsArray.map(
-        (id: string) => new mongoose.Types.ObjectId(id)
-      )
+  const idsArray = Array.isArray(orderIds)
+    ? orderIds
+    : orderIds.split(',')
 
-      const result = await Order.deleteMany({
-        _id: { $in: objectIds },
-      })
-
-      res.status(StatusCodes.OK).json({
-        success: true,
-        message: 'Orders deleted successfully',
-        data: result,
-      })
-    } 
+  const objectIds = idsArray.map(
+    (id: string) => new mongoose.Types.ObjectId(id)
   )
+
+  const result = await Order.deleteMany({
+    _id: { $in: objectIds },
+  })
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Orders deleted successfully',
+    data: result,
+  })
+}
+)
 
 
 

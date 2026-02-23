@@ -48,7 +48,7 @@ const forgotPassword = catchAsync(async (req, res) => {
 });
 
 const resendForgotOtpCode = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   await authService.resendForgotOtpCode(email);
 
   sendResponse(res, {
@@ -61,7 +61,7 @@ const resendForgotOtpCode = catchAsync(async (req, res) => {
 
 const verifyOtp = catchAsync(async (req, res) => {
   const { otp } = req.body;
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await authService.verifyOtp(email, otp);
 
   sendResponse(res, {
@@ -73,7 +73,7 @@ const verifyOtp = catchAsync(async (req, res) => {
 });
 
 const resetPassword = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await authService.resetPassword(req.body, email);
 
   sendResponse(res, {
@@ -85,7 +85,7 @@ const resetPassword = catchAsync(async (req, res) => {
 });
 
 const changePassword = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user!;
   const result = await authService.changePassword(req.body, email);
 
   sendResponse(res, {
