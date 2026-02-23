@@ -25,6 +25,7 @@ const corsOptions = {
     'https://admin.hierroamedida.com',
   ],
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-guest-id'],
   credentials: true,
 }
 
