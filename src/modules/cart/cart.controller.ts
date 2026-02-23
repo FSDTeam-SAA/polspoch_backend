@@ -7,7 +7,7 @@ import cartService from "./cart.service";
 const addToCart = catchAsync(async (req, res) => {
   const identity = {
     email: req.user?.email,
-    guestId: (req.headers["x-guest-id"] || req.body.guestId) as string
+    guestId: (req.headers["x-guest-id"] || req.body?.guestId || req.query?.guestId) as string
   };
   const cart = await cartService.addToCart(req.body, identity);
 
@@ -22,7 +22,7 @@ const addToCart = catchAsync(async (req, res) => {
 const getMyCart = catchAsync(async (req, res) => {
   const identity = {
     email: req.user?.email,
-    guestId: (req.headers["x-guest-id"] || req.query.guestId) as string
+    guestId: (req.headers["x-guest-id"] || req.query?.guestId || req.body?.guestId) as string
   };
 
   const page = Number(req.query.page) || 1;
@@ -42,7 +42,7 @@ const getMyCart = catchAsync(async (req, res) => {
 const increaseQuantity = catchAsync(async (req, res) => {
   const identity = {
     email: req.user?.email,
-    guestId: (req.headers["x-guest-id"] || req.body.guestId) as string
+    guestId: (req.headers["x-guest-id"] || req.body?.guestId || req.query?.guestId) as string
   };
   const { cartId } = req.params;
   const cart = await cartService.increaseQuantity(identity, cartId);
@@ -58,7 +58,7 @@ const increaseQuantity = catchAsync(async (req, res) => {
 const deletedCart = catchAsync(async (req, res) => {
   const identity = {
     email: req.user?.email,
-    guestId: (req.headers["x-guest-id"] || req.body.guestId) as string
+    guestId: (req.headers["x-guest-id"] || req.query?.guestId || req.body?.guestId) as string
   };
   const { cartId } = req.params;
   await cartService.deletedCart(identity, cartId);

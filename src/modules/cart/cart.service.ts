@@ -160,11 +160,20 @@ const increaseQuantity = async (
   // Security check: ensure the cart belongs to the user/guest
   if (identity.email) {
     const user = await User.findOne({ email: identity.email });
-    if (!user || isCartExist.userId?.toString() !== user._id.toString()) {
+    if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+
+    // Allow if matches userId OR (if userId is not set) matches guestId
+    const isOwner =
+      isCartExist.userId?.toString() === user._id.toString() ||
+      (!isCartExist.userId && isCartExist.guestId === identity.guestId);
+
+    if (!isOwner) {
       throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
     }
-  } else if (isCartExist.guestId !== identity.guestId) {
-    throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
+  } else {
+    if (!identity.guestId || isCartExist.guestId !== identity.guestId) {
+      throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
+    }
   }
 
   const updatedCart = await Cart.findByIdAndUpdate(
@@ -186,11 +195,19 @@ const deletedCart = async (
   // Security check
   if (identity.email) {
     const user = await User.findOne({ email: identity.email });
-    if (!user || isCartExist.userId?.toString() !== user._id.toString()) {
+    if (!user) throw new AppError("User not found", StatusCodes.NOT_FOUND);
+
+    const isOwner =
+      isCartExist.userId?.toString() === user._id.toString() ||
+      (!isCartExist.userId && isCartExist.guestId === identity.guestId);
+
+    if (!isOwner) {
       throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
     }
-  } else if (isCartExist.guestId !== identity.guestId) {
-    throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
+  } else {
+    if (!identity.guestId || isCartExist.guestId !== identity.guestId) {
+      throw new AppError("Unauthorized access to cart", StatusCodes.UNAUTHORIZED);
+    }
   }
 
   await Cart.findByIdAndDelete(cartId);
