@@ -14,70 +14,75 @@ import modifyBending from '../modules/templates/bending/bending.routes'
 import modifyCutting from '../modules/templates/cutting/cutting.routes'
 import shippingPolicy from '../modules/shippingPolicy/shipping.routes'
 import shippingAddressRouter from '../modules/shippingAddress/shippingAddress.router'
+import orderShippingPolicyRouter from '../modules/orderShippingPolicy/orderShippingPolicy.router'
 const router = Router()
 
 const moduleRoutes = [
   {
-    path: '/user',
+    path: "/user",
     route: userRouter,
   },
   {
-    path: '/auth',
+    path: "/auth",
     route: authRouter,
   },
   {
-    path: '/contact',
+    path: "/contact",
     route: contactRouter,
   },
   {
-    path: '/product',
+    path: "/product",
     route: productRouter,
   },
   {
-    path: '/service',
+    path: "/service",
     route: serviceRouter,
   },
   {
-    path: '/cart',
+    path: "/cart",
     route: cartRouter,
   },
   {
-    path: '/order',
+    path: "/order",
     route: orderRouter,
   },
   {
-    path: '/payment',
+    path: "/payment",
     route: paymentRouter,
   },
   {
-    path: '/analytics',
+    path: "/analytics",
     route: analyticRouter,
   },
   {
-    path: '/modify-service',
+    path: "/modify-service",
     route: modifyService,
   },
   {
-    path: '/rebar',
+    path: "/rebar",
     route: modifyRebar,
   },
   {
-    path: '/bending',
+    path: "/bending",
     route: modifyBending,
   },
   {
-    path: '/cutting',
+    path: "/cutting",
     route: modifyCutting,
   },
   {
-    path: '/shippingPolicy',
+    path: "/shippingPolicy",
     route: shippingPolicy,
   },
   {
-    path: '/shipping-address',
+    path: "/shipping-address",
     route: shippingAddressRouter,
   },
-]
+  {
+    path: "/order-shipping",
+    route: orderShippingPolicyRouter,
+  },
+];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route))
 
