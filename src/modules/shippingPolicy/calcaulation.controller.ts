@@ -93,15 +93,7 @@ export const calculateRebarQuote = async (
     } else {
       // Must use Truck (Exceeds 2500mm)
       shippingMethod = "truck";
-      let cost = truck.basePrice;
-
-      if (totalWeight > truck.freeWeightLimit) {
-        const extraWeight = totalWeight - truck.freeWeightLimit;
-        // Price per 500kg block
-        const unitsOf500 = Math.ceil(extraWeight / truck.extraWeightStep);
-        cost += unitsOf500 * truck.extraWeightPrice;
-      }
-      shippingCost = cost;
+      shippingCost = truck.basePrice;
     }
 
     // 5. RESPONSE
@@ -234,13 +226,7 @@ export const calculateBendingQuote = async (
       shippingCost = Math.min(cost, courier.maxTotalCost);
     } else {
       shippingMethod = "truck";
-      let cost = truck.basePrice;
-      if (totalWeight > truck.freeWeightLimit) {
-        const extra = totalWeight - truck.freeWeightLimit;
-        cost +=
-          Math.ceil(extra / truck.extraWeightStep) * truck.extraWeightPrice;
-      }
-      shippingCost = cost;
+      shippingCost = truck.basePrice;
     }
 
     // 5. RESPONSE (formatted exactly as requested)
@@ -478,13 +464,7 @@ export const calculateCuttingQuote = async (
       shippingCost = Math.min(calc, courier.maxTotalCost);
     } else {
       shippingMethod = "truck";
-      let calc = truck.basePrice;
-      if (totalWeight > truck.freeWeightLimit) {
-        const extra = totalWeight - truck.freeWeightLimit;
-        calc +=
-          Math.ceil(extra / truck.extraWeightStep) * truck.extraWeightPrice;
-      }
-      shippingCost = calc;
+      shippingCost = truck.basePrice;
     }
 
     // 4. FINAL RESPONSE
@@ -506,6 +486,70 @@ export const calculateCuttingQuote = async (
         shippingPrice: Number(shippingCost.toFixed(2)),
         finalQuote: Number((totalProductPrice + shippingCost).toFixed(2)),
       },
+      shippingStatus: {
+        method: shippingMethod,
+        isOversized: maxDimension > courier.maxSizeAllowed,
+        maxDimensionDetected: maxDimension,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+/**
+ * Generic calculation for products based on weight and dimensions
+ */
+export const calculateProductShippingQuote = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { totalWeight, maxDimension } = req.body;
+
+    if (totalWeight === undefined || maxDimension === undefined) {
+      res.status(400).json({ message: "totalWeight and maxDimension are required." });
+      return;
+    }
+
+    const [courier, truck] = await Promise.all([
+      ShippingPolicy.findOne({ methodName: "courier" }),
+      ShippingPolicy.findOne({ methodName: "truck" }),
+    ]);
+
+    if (!courier || !truck) {
+      res.status(404).json({ message: "Shipping policies not found." });
+      return;
+    }
+
+    let shippingCost = 0;
+    let shippingMethod = "";
+
+    if (maxDimension <= courier.maxSizeAllowed) {
+      shippingMethod = "courier";
+      let cost = courier.basePrice;
+
+      // Extra Weight (> 30kg)
+      if (totalWeight > courier.freeWeightLimit) {
+        cost += (totalWeight - courier.freeWeightLimit) * courier.extraWeightPrice;
+      }
+
+      // Extra Size (>= 2000mm)
+      if (maxDimension >= courier.sizeThreshold) {
+        cost += courier.sizeSurcharge;
+      }
+
+      // Apply Courier Maximum Cap (e.g., 150€)
+      shippingCost = Math.min(cost, courier.maxTotalCost);
+    } else {
+      // Must use Truck (Exceeds 2500mm)
+      shippingMethod = "truck";
+      shippingCost = truck.basePrice;
+    }
+
+    res.status(200).json({
+      success: true,
+      shippingPrice: Number(shippingCost.toFixed(2)),
       shippingStatus: {
         method: shippingMethod,
         isOversized: maxDimension > courier.maxSizeAllowed,

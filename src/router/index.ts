@@ -14,7 +14,7 @@ import modifyBending from '../modules/templates/bending/bending.routes'
 import modifyCutting from '../modules/templates/cutting/cutting.routes'
 import shippingPolicy from '../modules/shippingPolicy/shipping.routes'
 import shippingAddressRouter from '../modules/shippingAddress/shippingAddress.router'
-import orderShippingPolicyRouter from '../modules/orderShippingPolicy/orderShippingPolicy.router'
+
 const router = Router()
 
 const moduleRoutes = [
@@ -78,10 +78,7 @@ const moduleRoutes = [
     path: "/shipping-address",
     route: shippingAddressRouter,
   },
-  {
-    path: "/order-shipping",
-    route: orderShippingPolicyRouter,
-  },
+
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route))
