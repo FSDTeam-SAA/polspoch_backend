@@ -22,8 +22,10 @@ const sendEmail = async ({
       host: "smtp.gmail.com",
       port: 587,
       secure: false,
+      // service: "gmail",
+
       auth: {
-        user: config.email.emailAddress,
+        user: config.email.adminEmail,
         pass: config.email.emailPass,
       },
       tls: {
@@ -32,7 +34,7 @@ const sendEmail = async ({
     });
 
     const mailOptions = {
-      from: config.email.emailAddress,
+      from: config.email.adminEmail,
       to,
       subject,
       html,
@@ -44,6 +46,7 @@ const sendEmail = async ({
 
     return { success: true };
   } catch (error: any) {
+    // console.error("❌ Email send failed:", error);
     return { success: false, error: error.message };
   }
 };

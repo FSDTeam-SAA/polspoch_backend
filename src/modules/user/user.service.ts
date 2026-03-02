@@ -22,7 +22,7 @@ const registerUser = async (payload: IUser) => {
   if (payload.password.length < 6) {
     throw new AppError(
       "Password must be at least 6 characters long",
-      StatusCodes.BAD_REQUEST
+      StatusCodes.BAD_REQUEST,
     );
   }
 
@@ -37,7 +37,7 @@ const registerUser = async (payload: IUser) => {
     result = (await User.findOneAndUpdate(
       { email: existingUser.email },
       { otp: hashedOtp, otpExpires },
-      { new: true }
+      { new: true },
     )) as IUser;
   } else {
     // Case 3: new user
@@ -50,11 +50,13 @@ const registerUser = async (payload: IUser) => {
   }
 
   // Send email
-  await sendEmail({
+await sendEmail({
     to: result.email,
     subject: "Verify your email",
     html: verificationCodeTemplate(otp),
   });
+
+  // console.log("this is email", email);
 
   // JWT payload
   const JwtToken = {
@@ -66,18 +68,11 @@ const registerUser = async (payload: IUser) => {
   const accessToken = createToken(
     JwtToken,
     config.JWT_SECRET as string,
-    config.JWT_EXPIRES_IN as string
-  );
-
-  const refreshToken = createToken(
-    JwtToken,
-    config.refreshTokenSecret as string,
-    config.jwtRefreshTokenExpiresIn as string
+    config.JWT_EXPIRES_IN as string,
   );
 
   return {
     accessToken,
-    refreshToken,
     user: {
       _id: result._id,
       firstName: result.firstName,
@@ -116,7 +111,7 @@ const verifyEmail = async (email: string, payload: string) => {
       isVerified: true,
       $unset: { otp: "", otpExpires: "" },
     },
-    { new: true }
+    { new: true },
   ).select("username email role");
   return result;
 };
@@ -140,7 +135,7 @@ const resendOtpCode = async (email: string) => {
       otp: hashedOtp,
       otpExpires,
     },
-    { new: true }
+    { new: true },
   ).select("username email role");
 
   await sendEmail({
@@ -153,7 +148,7 @@ const resendOtpCode = async (email: string) => {
 
 const getAllUsers = async () => {
   const result = await User.find({ isVerified: true }).select(
-    "username firstName lastName email role"
+    "username firstName lastName email role",
   );
   return result;
 };
@@ -164,7 +159,7 @@ const getMyProfile = async (email: string) => {
     throw new AppError("User not found", StatusCodes.NOT_FOUND);
 
   const result = await User.findOne({ email }).select(
-    "-password -otp -otpExpires -resetPasswordOtp -resetPasswordOtpExpires"
+    "-password -otp -otpExpires -resetPasswordOtp -resetPasswordOtpExpires",
   );
 
   return result;
@@ -219,7 +214,7 @@ const updateUserProfileImage = async (email: string, file: any) => {
     const result = await User.findOneAndUpdate({ email }, updateData, {
       new: true,
     }).select(
-      "-password -otp -otpExpires -resetPasswordOtp -resetPasswordOtpExpires"
+      "-password -otp -otpExpires -resetPasswordOtp -resetPasswordOtpExpires",
     );
 
     if (file && oldImagePublicId) {

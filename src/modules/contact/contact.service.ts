@@ -14,7 +14,7 @@ const sendContact = async (payload: IContact) => {
   });
 
   await sendEmail({
-    to: config.email.emailAddress as string,
+    to: config.email.adminEmail as string,
     subject,
     html,
   });
