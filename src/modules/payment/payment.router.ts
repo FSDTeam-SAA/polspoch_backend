@@ -1,27 +1,27 @@
-import { Router } from "express";
-import auth from "../../middleware/auth";
-import { USER_ROLE } from "../user/user.constant";
-import paymentController from "./payment.controller";
+import { Router } from 'express'
+import auth from '../../middleware/auth'
+import { USER_ROLE } from '../user/user.constant'
+import paymentController from './payment.controller'
 
-const router = Router();
+const router = Router()
 
-router.post("/pay", auth(USER_ROLE.USER), paymentController.createPayment);
+router.post('/pay', auth(USER_ROLE.USER), paymentController.createPayment)
 router.get(
-  "/my-payments",
+  '/my-payments',
   auth(USER_ROLE.USER),
-  paymentController.getMyPayments
-);
+  paymentController.getMyPayments,
+)
 
 router.get(
-  "/all-payments",
-  // auth(USER_ROLE.ADMIN),
-  paymentController.getAllPayments
-);
+  '/all-payments',
+  auth(USER_ROLE.ADMIN),
+  paymentController.getAllPayments,
+)
 router.get(
-  "/:paymentId",
-  // auth(USER_ROLE.ADMIN),
-  paymentController.getSinglePayment
-);
+  '/:paymentId',
+  auth(USER_ROLE.ADMIN),
+  paymentController.getSinglePayment,
+)
 
-const paymentRouter = router;
-export default paymentRouter;
+const paymentRouter = router
+export default paymentRouter

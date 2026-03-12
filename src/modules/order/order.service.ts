@@ -1,94 +1,93 @@
-import { StatusCodes } from "http-status-codes";
-import AppError from "../../errors/AppError";
-import Cart from "../cart/cart.model";
-import { IProductFeature } from "../product/product.interface";
-import { Product } from "../product/product.model";
-import Service from "../service/service.model";
-import { User } from "../user/user.model";
-import { IOrder } from "./order.interface";
-import { Order } from "./order.model";
+import { StatusCodes } from 'http-status-codes'
+import AppError from '../../errors/AppError'
+import Cart from '../cart/cart.model'
+import { IProductFeature } from '../product/product.interface'
+import { Product } from '../product/product.model'
+import Service from '../service/service.model'
+import { User } from '../user/user.model'
+import config from '../../config'
+import sendEmail from '../../utils/sendEmail'
+import { IOrder } from './order.interface'
+import { Order } from './order.model'
 
 const createNewOrder = async (payload: IOrder, email: string) => {
-  const user = await User.isUserExistByEmail(email);
+  const user = await User.isUserExistByEmail(email)
   if (!user) {
-    throw new AppError("User not found", StatusCodes.NOT_FOUND);
+    throw new AppError('User not found', StatusCodes.NOT_FOUND)
   }
 
-  if (payload.type === "product") {
-    if (!payload.product || !payload.product.productId) {
-      throw new AppError("Product info is required", StatusCodes.BAD_REQUEST);
+  if (payload.type === 'product') {
+    if (!payload.product?.productId) {
+      throw new AppError('Product info is required', StatusCodes.BAD_REQUEST)
     }
 
-    const product = await Product.findById(payload.product.productId).lean();
+    const product = await Product.findById(payload.product.productId).lean()
     if (!product) {
-      throw new AppError("Product not found", StatusCodes.NOT_FOUND);
+      throw new AppError('Product not found', StatusCodes.NOT_FOUND)
     }
 
-    let featureData: IProductFeature;
+    let featureData: IProductFeature
     if (payload.product.featuredId) {
       featureData = product.features.find(
         (f) =>
-          (f as any)._id.toString() === payload.product.featuredId?.toString()
-      ) as IProductFeature;
+          (f as any)._id.toString() === payload.product.featuredId?.toString(),
+      ) as IProductFeature
       if (!featureData) {
-        throw new AppError("Selected feature not found", StatusCodes.NOT_FOUND);
+        throw new AppError('Selected feature not found', StatusCodes.NOT_FOUND)
       }
     } else {
-      featureData = product.features[0];
+      featureData = product.features[0]
     }
 
     if (payload.product.unitSize && payload.product.range) {
       throw new AppError(
-        "You can select either unitSize or range, not both.",
-        StatusCodes.BAD_REQUEST
-      );
+        'You can select either unitSize or range, not both.',
+        StatusCodes.BAD_REQUEST,
+      )
     }
     if (!payload.product.unitSize && !payload.product.range) {
       throw new AppError(
-        "You must select either unitSize or range.",
-        StatusCodes.BAD_REQUEST
-      );
+        'You must select either unitSize or range.',
+        StatusCodes.BAD_REQUEST,
+      )
     }
 
-    const quantity = payload.quantity || 1;
+    const quantity = payload.quantity || 1
     if (
       (featureData.minRange && quantity < featureData.minRange) ||
       (featureData.maxRange && quantity > featureData.maxRange)
     ) {
       throw new AppError(
         `Quantity must be between ${featureData.minRange} and ${featureData.maxRange}`,
-        StatusCodes.BAD_REQUEST
-      );
+        StatusCodes.BAD_REQUEST,
+      )
     }
   }
 
-
-  if (payload.type === "service") {
+  if (payload.type === 'service') {
     if (!payload.serviceId) {
-      throw new AppError("ServiceId is required", StatusCodes.BAD_REQUEST);
+      throw new AppError('ServiceId is required', StatusCodes.BAD_REQUEST)
     }
-    const service = await Service.findById(payload.serviceId).lean();
+    const service = await Service.findById(payload.serviceId).lean()
     if (!service) {
-      throw new AppError("Service not found", StatusCodes.NOT_FOUND);
+      throw new AppError('Service not found', StatusCodes.NOT_FOUND)
     }
-    // totalAmount = service.price || 0;
   }
 
   // ৭. Cart order
-  if (payload.type === "cart") {
+  if (payload.type === 'cart') {
     if (!payload.cartItems || payload.cartItems.length === 0) {
-      throw new AppError("Cart is empty", StatusCodes.BAD_REQUEST);
+      throw new AppError('Cart is empty', StatusCodes.BAD_REQUEST)
     }
 
     for (const item of payload.cartItems) {
-      const cartItem = await Cart.findById(item.cartId).lean();
+      const cartItem = await Cart.findById(item.cartId).lean()
       if (!cartItem) {
         throw new AppError(
           `Cart item ${item.cartId} not found`,
-          StatusCodes.NOT_FOUND
-        );
+          StatusCodes.NOT_FOUND,
+        )
       }
-      // totalAmount += (cartItem as any).pricePerUnit * item.quantity;
     }
   }
 
@@ -101,19 +100,19 @@ const createNewOrder = async (payload: IOrder, email: string) => {
     type: payload.type,
     quantity: payload.quantity,
     totalAmount: payload.totalAmount,
-    status: "pending",
-    paymentStatus: "unpaid",
+    status: 'pending',
+    paymentStatus: 'unpaid',
     purchaseDate: new Date(),
-  });
+  })
 
-  return newOrder;
-};
+  return newOrder
+}
 
 const getMyOrders = async (email: string, page: number, limit: number) => {
-  const user = await User.isUserExistByEmail(email);
-  if (!user) throw new AppError("User not found", 404);
+  const user = await User.isUserExistByEmail(email)
+  if (!user) throw new AppError('User not found', 404)
 
-  const skip = (page - 1) * limit;
+  const skip = (page - 1) * limit
 
   const [orders, totalOrders] = await Promise.all([
     Order.find({ userId: user._id })
@@ -121,29 +120,29 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
       .skip(skip)
       .limit(limit)
       .populate({
-        path: "userId",
-        select: "firstName lastName email companyName",
+        path: 'userId',
+        select: 'firstName lastName email companyName',
       })
       .populate({
-        path: "product.productId",
-        model: "Product",
+        path: 'product.productId',
+        model: 'Product',
       })
       .populate({
-        path: "serviceId",
-        model: "Service",
+        path: 'serviceId',
+        model: 'Service',
       })
       .populate({
-        path: "cartItems.cartId",
-        model: "Cart",
+        path: 'cartItems.cartId',
+        model: 'Cart',
         populate: [
-          { path: "serviceId", model: "Service" },
-          { path: "product.productId", model: "Product" },
+          { path: 'serviceId', model: 'Service' },
+          { path: 'product.productId', model: 'Product' },
         ],
       })
       .lean(),
 
     Order.countDocuments({ userId: user._id }),
-  ]);
+  ])
 
   /*
   ─────────────────────────────────────────────
@@ -158,16 +157,16 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
     --------------------------------
     */
     if (order.product?.productId) {
-      const productDoc = order.product.productId;
-      const featuredId = order.product.featuredId;
+      const productDoc = order.product.productId
+      const featuredId = order.product.featuredId
 
       if (productDoc?.features?.length) {
         const matchedFeature = productDoc.features.find(
-          (f: any) => f._id.toString() === featuredId?.toString()
-        );
+          (f: any) => f._id.toString() === featuredId?.toString(),
+        )
 
-        order.product.selectedFeature = matchedFeature || null;
-        delete order.product.productId.features;
+        order.product.selectedFeature = matchedFeature || null
+        delete order.product.productId.features
       }
     }
 
@@ -176,38 +175,38 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
       CART ORDER
     --------------------------------
     */
-    if (order.type === "cart" && order.cartItems?.length > 0) {
+    if (order.type === 'cart' && order.cartItems?.length > 0) {
       order.cartItems = order.cartItems.map((item: any) => {
-        const cartItem = item.cartId;
-        if (!cartItem) return item;
+        const cartItem = item.cartId
+        if (!cartItem) return item
 
         // SERVICE INSIDE CART
-        if (cartItem.type === "service" && cartItem.serviceId) {
-          cartItem.service = cartItem.serviceId;
-          delete cartItem.serviceId;
+        if (cartItem.type === 'service' && cartItem.serviceId) {
+          cartItem.service = cartItem.serviceId
+          delete cartItem.serviceId
         }
 
         // PRODUCT INSIDE CART
-        if (cartItem.type === "product" && cartItem.product) {
-          const productDoc = cartItem.product.productId;
-          const featuredId = cartItem.product.featuredId;
+        if (cartItem.type === 'product' && cartItem.product) {
+          const productDoc = cartItem.product.productId
+          const featuredId = cartItem.product.featuredId
 
           if (productDoc?.features?.length) {
             const matchedFeature = productDoc.features.find(
-              (f: any) => f._id.toString() === featuredId?.toString()
-            );
+              (f: any) => f._id.toString() === featuredId?.toString(),
+            )
 
-            cartItem.product.selectedFeature = matchedFeature || null;
-            delete cartItem.product.productId.features;
+            cartItem.product.selectedFeature = matchedFeature || null
+            delete cartItem.product.productId.features
           }
         }
 
-        return { cartId: cartItem };
-      });
+        return { cartId: cartItem }
+      })
     }
 
-    return order;
-  });
+    return order
+  })
 
   /*
   ─────────────────────────────────────────────
@@ -223,8 +222,8 @@ const getMyOrders = async (email: string, page: number, limit: number) => {
       limit,
       totalPages: Math.ceil(totalOrders / limit),
     },
-  };
-};
+  }
+}
 
 const getAllOrders = async (
   page: number,
@@ -232,36 +231,36 @@ const getAllOrders = async (
   search?: string,
   status?: string,
   paymentStatus?: string,
-  sortBy?: "paid" | "unpaid"
+  sortBy?: 'paid' | 'unpaid',
 ) => {
-  const skip = (page - 1) * limit;
+  const skip = (page - 1) * limit
 
-  const query: any = {};
+  const query: any = {}
 
-  if (status && ["pending", "delivered", "rejected"].includes(status)) {
-    query.status = status;
+  if (status && ['pending', 'delivered', 'rejected'].includes(status)) {
+    query.status = status
   }
 
-  if (paymentStatus && ["paid", "unpaid"].includes(paymentStatus)) {
-    query.paymentStatus = paymentStatus;
+  if (paymentStatus && ['paid', 'unpaid'].includes(paymentStatus)) {
+    query.paymentStatus = paymentStatus
   }
 
   if (search) {
     const users = await User.find({
       $or: [
-        { firstName: { $regex: search, $options: "i" } },
-        { lastName: { $regex: search, $options: "i" } },
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
       ],
-    }).select("_id");
+    }).select('_id')
 
-    const userIds = users.map((u) => u._id);
-    query.userId = { $in: userIds };
+    const userIds = users.map((u) => u._id)
+    query.userId = { $in: userIds }
   }
 
-  const sortOptions: any = {};
-  if (sortBy === "paid") sortOptions.paymentStatus = 1;
-  else if (sortBy === "unpaid") sortOptions.paymentStatus = -1;
-  else sortOptions.createdAt = -1;
+  const sortOptions: any = {}
+  if (sortBy === 'paid') sortOptions.paymentStatus = 1
+  else if (sortBy === 'unpaid') sortOptions.paymentStatus = -1
+  else sortOptions.createdAt = -1
 
   const [orders, totalOrders] = await Promise.all([
     Order.find(query)
@@ -269,76 +268,76 @@ const getAllOrders = async (
       .skip(skip)
       .limit(limit)
       .populate({
-        path: "userId",
-        select: "firstName lastName email companyName",
+        path: 'userId',
+        select: 'firstName lastName email companyName',
       })
-      .populate({ path: "product.productId", model: "Product" })
-      .populate({ path: "serviceId", model: "Service" })
+      .populate({ path: 'product.productId', model: 'Product' })
+      .populate({ path: 'serviceId', model: 'Service' })
       .populate({
-        path: "cartItems.cartId",
-        model: "Cart",
+        path: 'cartItems.cartId',
+        model: 'Cart',
         populate: [
-          { path: "serviceId", model: "Service" },
-          { path: "product.productId", model: "Product" },
+          { path: 'serviceId', model: 'Service' },
+          { path: 'product.productId', model: 'Product' },
         ],
       })
       .lean(),
 
     Order.countDocuments(query),
-  ]);
+  ])
 
   const formattedOrders = orders.map((order: any) => {
     if (order.product?.productId) {
-      const productDoc = order.product.productId;
-      const featuredId = order.product.featuredId;
+      const productDoc = order.product.productId
+      const featuredId = order.product.featuredId
 
       if (productDoc?.features?.length) {
         const matchedFeature = productDoc.features.find(
-          (f: any) => f._id.toString() === featuredId?.toString()
-        );
+          (f: any) => f._id.toString() === featuredId?.toString(),
+        )
 
-        order.product.selectedFeature = matchedFeature || null;
-        delete order.product.productId.features;
+        order.product.selectedFeature = matchedFeature || null
+        delete order.product.productId.features
       }
     }
 
     // Cart orders
-    if (order.type === "cart" && order.cartItems?.length > 0) {
+    if (order.type === 'cart' && order.cartItems?.length > 0) {
       order.cartItems = order.cartItems.map((item: any) => {
-        const cartItem = item.cartId;
-        if (!cartItem) return item;
+        const cartItem = item.cartId
+        if (!cartItem) return item
 
         // Service inside cart
-        if (cartItem.type === "service" && cartItem.serviceId) {
-          cartItem.service = cartItem.serviceId;
-          delete cartItem.serviceId;
+        if (cartItem.type === 'service' && cartItem.serviceId) {
+          cartItem.service = cartItem.serviceId
+          delete cartItem.serviceId
         }
 
         // Product inside cart
-        if (cartItem.type === "product" && cartItem.product) {
-          const productDoc = cartItem.product.productId;
-          const featuredId = cartItem.product.featuredId;
+        if (cartItem.type === 'product' && cartItem.product) {
+          const productDoc = cartItem.product.productId
+          const featuredId = cartItem.product.featuredId
 
           if (productDoc?.features?.length) {
             const matchedFeature = productDoc.features.find(
-              (f: any) => f._id.toString() === featuredId?.toString()
-            );
+              (f: any) => f._id.toString() === featuredId?.toString(),
+            )
 
-            cartItem.product.selectedFeature = matchedFeature || null;
-            delete cartItem.product.productId.features;
+            cartItem.product.selectedFeature = matchedFeature || null
+            delete cartItem.product.productId.features
           }
         }
 
-        return { cartId: cartItem };
-      });
+        return { cartId: cartItem }
+      })
     }
 
-    return order;
-  });
+    return order
+  })
 
   return {
     success: true,
-    message: "Orders retrieved successfully",
+    message: 'Orders retrieved successfully',
     statusCode: 200,
     data: formattedOrders,
     meta: {
@@ -347,30 +346,59 @@ const getAllOrders = async (
       limit,
       totalPages: Math.ceil(totalOrders / limit),
     },
-  };
-};
+  }
+}
 
 const updateOrderStatus = async (orderId: string, status: string) => {
-  const order = await Order.findById(orderId);
+  const allowedStatuses = ['pending', 'delivered', 'rejected']
+  if (!allowedStatuses.includes(status)) {
+    throw new AppError('Invalid status', StatusCodes.BAD_REQUEST)
+  }
+
+  const order = await Order.findById(orderId)
   if (!order) {
-    throw new AppError("Order not found", StatusCodes.NOT_FOUND);
+    throw new AppError('Order not found', StatusCodes.NOT_FOUND)
   }
 
-  if (order.paymentStatus !== "paid") {
+  if (order.paymentStatus !== 'paid') {
     throw new AppError(
-      "Cannot update status of unpaid order",
-      StatusCodes.BAD_REQUEST
-    );
+      'Cannot update status of unpaid order',
+      StatusCodes.BAD_REQUEST,
+    )
   }
 
-  await Order.findByIdAndUpdate(orderId, { status }, { new: true });
-};
+  const updatedOrder = await Order.findByIdAndUpdate(
+    orderId,
+    { status },
+    { new: true },
+  )
+
+  if (status === 'delivered' && config.email.adminEmail) {
+    const user = await User.findById(order.userId).select('firstName email')
+
+    const adminHtml = `
+      <h2>Order Completed</h2>
+      <p>Order ID: <strong>${order._id}</strong></p>
+      <p>Customer: ${user?.firstName || user?.email || 'Unknown'}</p>
+      <p>Customer Email: ${user?.email || 'N/A'}</p>
+      <p>Status: <strong>${status}</strong></p>
+    `
+
+    await sendEmail({
+      to: config.email.adminEmail,
+      subject: 'Order Completed ✅',
+      html: adminHtml,
+    })
+  }
+
+  return updatedOrder
+}
 
 const orderService = {
   createNewOrder,
   getMyOrders,
   getAllOrders,
   updateOrderStatus,
-};
+}
 
-export default orderService;
+export default orderService

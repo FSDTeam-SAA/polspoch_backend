@@ -1,51 +1,57 @@
-import { Router } from "express";
-import auth from "../../middleware/auth";
-import { upload } from "../../middleware/multer.middleware";
-import validateRequest from "../../middleware/validateRequest";
-import { USER_ROLE } from "./user.constant";
-import userController from "./user.controller";
-import { userValidation } from "./user.validation";
+import { Router } from 'express'
+import auth from '../../middleware/auth'
+import { upload } from '../../middleware/multer.middleware'
+import validateRequest from '../../middleware/validateRequest'
+import { USER_ROLE } from './user.constant'
+import userController from './user.controller'
+import { userValidation } from './user.validation'
 
-const router = Router();
+const router = Router()
 
 router.post(
-  "/register",
+  '/register',
   validateRequest(userValidation.userValidationSchema),
-  userController.registerUser
-);
+  userController.registerUser,
+)
 
 router.post(
-  "/verify-email",
+  '/verify-email',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  userController.verifyEmail
-);
+  userController.verifyEmail,
+)
 
 router.post(
-  "/resend-otp",
+  '/resend-otp',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  userController.resendOtpCode
-);
+  userController.resendOtpCode,
+)
 
-router.get("/all-users", userController.getAllUsers);
+router.get('/all-users', auth(USER_ROLE.ADMIN), userController.getAllUsers)
+
+router.patch(
+  '/:userId/role',
+  auth(USER_ROLE.ADMIN),
+  userController.updateUserRole,
+)
 router.get(
-  "/my-profile",
+  '/my-profile',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  userController.getMyProfile
-);
+  userController.getMyProfile,
+)
 
 router.put(
-  "/update-profile",
-  upload.single("image"),
+  '/update-profile',
+  upload.single('image'),
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  userController.updateUserProfile
-);
+  userController.updateUserProfile,
+)
 
 router.put(
-  "/profile-image",
-  upload.single("image"),
+  '/profile-image',
+  upload.single('image'),
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  userController.updateUserProfileImage
-);
+  userController.updateUserProfileImage,
+)
 
-const userRouter = router;
-export default userRouter;
+const userRouter = router
+export default userRouter

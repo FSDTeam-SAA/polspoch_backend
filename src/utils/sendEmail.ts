@@ -1,15 +1,15 @@
-import nodemailer from "nodemailer";
-import config from "../config";
+import nodemailer from 'nodemailer'
+import config from '../config'
 
 interface SendEmailParams {
-  to: string;
-  subject: string;
-  html: string;
+  to: string
+  subject: string
+  html: string
 }
 
 interface SendEmailResponse {
-  success: boolean;
-  error?: string;
+  success: boolean
+  error?: string
 }
 
 const sendEmail = async ({
@@ -18,37 +18,41 @@ const sendEmail = async ({
   html,
 }: SendEmailParams): Promise<SendEmailResponse> => {
   try {
+    const smtpUser = config.email.emailAddress || config.email.adminEmail
+    const smtpPass = config.email.emailPass
+
+    if (!smtpUser || !smtpPass) {
+      throw new Error('Email configuration is missing')
+    }
+
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
+      host: 'smtp.gmail.com',
       port: 587,
       secure: false,
       // service: "gmail",
 
       auth: {
-        user: config.email.adminEmail,
-        pass: config.email.emailPass,
+        user: smtpUser,
+        pass: smtpPass,
       },
       tls: {
         rejectUnauthorized: false,
       },
-    });
+    })
 
     const mailOptions = {
-      from: config.email.adminEmail,
+      from: smtpUser,
       to,
       subject,
       html,
-    };
+    }
 
-    await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions)
 
-    // console.log("Email sent successfully", mailOptions.from, mailOptions.to);
-
-    return { success: true };
+    return { success: true }
   } catch (error: any) {
-    // console.error("❌ Email send failed:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message }
   }
-};
+}
 
-export default sendEmail;
+export default sendEmail
