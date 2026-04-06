@@ -1,2 +1,2 @@
-export const companyName = "Your Company Name";
+export const companyName = "HIERRO A MEDIDA";
  

@@ -26,7 +26,7 @@ const sendEmail = async ({
     }
 
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
+      host: 'smtp.ionos.es',
       port: 587,
       secure: false,
       // service: "gmail",
