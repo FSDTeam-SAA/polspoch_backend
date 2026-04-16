@@ -102,6 +102,19 @@ const updateUserProfileImage = catchAsync(async (req, res) => {
   })
 })
 
+const deleteUserByAdmin = catchAsync(async (req, res) => {
+  const { userId } = req.params
+
+  await userService.deleteUserByAdmin(userId)
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User deleted successfully',
+    data: null,
+  })
+})
+
 const userController = {
   registerUser,
   verifyEmail,
@@ -111,6 +124,7 @@ const userController = {
   getMyProfile,
   updateUserProfile,
   updateUserProfileImage,
+  deleteUserByAdmin,
 }
 
 export default userController

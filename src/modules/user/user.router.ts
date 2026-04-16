@@ -33,6 +33,13 @@ router.patch(
   auth(USER_ROLE.ADMIN),
   userController.updateUserRole,
 )
+
+router.delete(
+  '/:userId',
+  auth(USER_ROLE.ADMIN),
+  userController.deleteUserByAdmin,
+)
+
 router.get(
   '/my-profile',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),

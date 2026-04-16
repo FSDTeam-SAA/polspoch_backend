@@ -258,6 +258,22 @@ const updateUserProfileImage = async (email: string, file: any) => {
   }
 }
 
+const deleteUserByAdmin = async (userId: string) => {
+  const existingUser = await User.findById(userId).select('image role')
+
+  if (!existingUser) {
+    throw new AppError('User not found', StatusCodes.NOT_FOUND)
+  }
+
+  if (existingUser.image?.public_id) {
+    await deleteFromCloudinary(existingUser.image.public_id)
+  }
+
+  await User.findByIdAndDelete(userId)
+
+  return null
+}
+
 const userService = {
   registerUser,
   verifyEmail,
@@ -267,6 +283,7 @@ const userService = {
   getMyProfile,
   updateUserProfile,
   updateUserProfileImage,
+  deleteUserByAdmin,
 }
 
 export default userService
