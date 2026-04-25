@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import authController from "./auth.controller";
 import validateRequest from "../../middleware/validateRequest";
 import { authValidationSchema } from "./auth.validation";
@@ -40,6 +40,19 @@ router.post(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   authController.changePassword
 );
+
+router.get(
+  "/google",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const redirect = (req.query.redirect as string) || "/";
+
+    passport.authenticate("google", {
+      scope: ["email", "profile"],
+      state: redirect,
+    })(req, res, next);
+  },
+);
+
 
 router.get(
   "/google/callback",

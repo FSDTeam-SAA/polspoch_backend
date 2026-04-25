@@ -5,8 +5,21 @@ import globalErrorHandler from './middleware/globalErrorHandler'
 import notFound from './middleware/notFound'
 import router from './router'
 import helmet from 'helmet'
+import "./config/passport";
+import expressSession from "express-session";
 
 const app: Application = express()
+
+
+app.use(
+  expressSession({
+    secret: "keyboard cat",
+    resave: false,
+    saveUninitialized: false,
+  }),
+);
+
+app.set("trust proxy", 1);
 
 app.use(helmet())
 

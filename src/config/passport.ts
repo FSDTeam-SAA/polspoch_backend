@@ -2,7 +2,6 @@ import passport, { Profile } from "passport";
 import { Strategy as GoogleStrategy, VerifyCallback } from "passport-google-oauth20";
 import { User } from "../modules/user/user.model";
 
-
 passport.use(
   new GoogleStrategy(
     {
@@ -39,7 +38,7 @@ passport.use(
             public_id: "",
             url: profile.photos?.[0].value,
           },
-          role: "non-member",
+          role: "user",
           isVerified: true,
           auth: [{ provider: "google", providerId: profile.id }],
         });
@@ -55,16 +54,15 @@ passport.use(
 );
 
 
-passport.serializeUser((user: any, done:any) => {
-  done(null, user.id);
+passport.serializeUser((user: any, done) => {
+  done(null, user._id.toString());
 });
 
-passport.deserializeUser(async (id:string, done:any) => {
+passport.deserializeUser(async (id: string, done) => {
   try {
     const user = await User.findById(id);
     done(null, user);
   } catch (error) {
-    console.log("deserializeUser error", error);
-    done(error);
+    done(error, null);
   }
 });
