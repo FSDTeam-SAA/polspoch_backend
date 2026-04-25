@@ -34,4 +34,10 @@ export default {
     frontend_cancel_url: process.env.FRONTEND_URL_CANCEL,
     stripe_secret_key: process.env.STRIPE_SECRET_KEY,
   },
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+  },
+  frontendUrl: process.env.FRONTEND_URL,
 };

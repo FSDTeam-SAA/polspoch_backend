@@ -4,6 +4,7 @@ import validateRequest from "../../middleware/validateRequest";
 import { authValidationSchema } from "./auth.validation";
 import auth from "../../middleware/auth";
 import { USER_ROLE } from "../user/user.constant";
+import passport from "passport";
 
 const router = Router();
 
@@ -38,6 +39,12 @@ router.post(
   "/change-password",
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   authController.changePassword
+);
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  authController.googleCallback,
 );
 
 const authRouter = router;
