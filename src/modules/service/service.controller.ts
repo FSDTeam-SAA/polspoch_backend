@@ -13,7 +13,7 @@ import Service from "./service.model";
 export const createService = catchAsync(async (req, res) => {
   const data = req.body;
   const guestId = req.headers["x-guest-id"] as string;
-  const userId = req.user?.id;
+  const userId = req.user?._id;
 
   if (!userId && !guestId) {
     throw new AppError(
@@ -39,7 +39,7 @@ export const createService = catchAsync(async (req, res) => {
 });
 
 export const getMyServices = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
+  const userId = req.user?._id;
   const guestId = req.headers["x-guest-id"] as string;
 
   let services;
