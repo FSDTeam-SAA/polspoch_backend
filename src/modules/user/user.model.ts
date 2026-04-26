@@ -7,15 +7,12 @@ const userSchema = new Schema<IUser>(
   {
     firstName: {
       type: String,
-      required: true,
     },
     lastName: {
       type: String,
-      required: true,
     },
     email: {
       type: String,
-      required: true,
       unique: true,
     },
     phone: {
@@ -23,7 +20,6 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: true,
     },
     street: {
       type: String,
@@ -82,16 +78,29 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-userSchema.pre("save", async function (next) {
-  this.password = await bcrypt.hash(
-    this.password,
-    Number(config.bcryptSaltRounds)
-  );
+userSchema.pre("save", async function (this: any, next: (err?: Error) => void) {
+  // 🔹 password change না হলে hash করো না
+  if (!this.isModified("password")) {
+    return next();
+  }
 
+  // 🔹 password না থাকলে stop
+  if (!this.password) {
+    return next(new Error("Password is required"));
+  }
+
+  const saltRounds = Number(config.bcryptSaltRounds);
+
+  // 🔹 saltRounds valid কিনা check
+  if (!saltRounds) {
+    return next(new Error("Bcrypt salt rounds not configured"));
+  }
+
+  this.password = await bcrypt.hash(this.password, saltRounds);
   next();
 });
 
-userSchema.post("save", function (doc, next) {
+userSchema.post("save", function (doc: any, next: (err?: Error) => void) {
   doc.password = "";
   next();
 });

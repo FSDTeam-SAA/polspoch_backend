@@ -7,6 +7,7 @@ import router from './router'
 import helmet from 'helmet'
 import "./config/passport";
 import expressSession from "express-session";
+import passport from 'passport'
 
 const app: Application = express()
 
@@ -27,6 +28,10 @@ app.use(express.static('public'))
 
 app.use(express.json())
 app.use(cookieParser())
+
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 const corsOptions = {
   origin: [
