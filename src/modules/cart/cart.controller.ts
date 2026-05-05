@@ -88,12 +88,33 @@ const mergeCart = catchAsync(async (req, res) => {
   });
 });
 
+/**
+ * CHECKOUT ENDPOINT - Calculates proper total with shipping ONCE
+ * This prevents the double-shipping bug by recalculating everything server-side
+ */
+const checkoutCart = catchAsync(async (req, res) => {
+  const identity = {
+    email: req.user?.email,
+    guestId: (req.headers["x-guest-id"] || req.body?.guestId || req.query?.guestId) as string
+  };
+
+  const result = await cartService.cartCheckout(identity);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: result.message,
+    data: result,
+  });
+});
+
 const cartController = {
   addToCart,
   getMyCart,
   increaseQuantity,
   deletedCart,
   mergeCart,
+  checkoutCart,
 };
 
 export default cartController;

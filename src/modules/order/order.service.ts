@@ -5,16 +5,93 @@ import { IProductFeature } from '../product/product.interface'
 import { Product } from '../product/product.model'
 import Service from '../service/service.model'
 import { User } from '../user/user.model'
+import { ShippingPolicy } from '../shippingPolicy/shipping.model'
 import config from '../../config'
 import sendEmail from '../../utils/sendEmail'
 import { IOrder } from './order.interface'
 import { Order } from './order.model'
+
+/**
+ * Validates that the order total is reasonable and doesn't have duplicate shipping
+ * This prevents the double-shipping bug
+ */
+const validateOrderTotal = async (payload: IOrder, email: string) => {
+  // Only validate cart orders (where duplicate shipping could occur)
+  if (payload.type !== 'cart' || !payload.cartItems) {
+    return true
+  }
+
+  let calculatedTotal = 0
+  let totalWeight = 0
+  let maxDimension = 0
+
+  // Recalculate total based on cart items
+  for (const item of payload.cartItems) {
+    const cartItem = await Cart.findById(item.cartId).lean()
+    if (!cartItem) continue
+
+    // For both products and services, use stored totalAmount
+    // (which represents product price without shipping)
+    calculatedTotal += cartItem.totalAmount || 0
+
+    // Track dimensions for shipping calculation
+    if (cartItem.type === 'service') {
+      totalWeight += cartItem.serviceData?.totalWeight || 0
+      maxDimension = Math.max(maxDimension, cartItem.serviceData?.maxDimensionDetected || 0)
+    }
+  }
+
+  // Calculate shipping ONCE
+  let shippingCost = 0
+  if (maxDimension > 0 && totalWeight > 0) {
+    const [courier, truck] = await Promise.all([
+      ShippingPolicy.findOne({ methodName: 'courier' }),
+      ShippingPolicy.findOne({ methodName: 'truck' }),
+    ])
+
+    if (courier && truck) {
+      if (maxDimension <= courier.maxSizeAllowed) {
+        let cost = courier.basePrice
+        if (totalWeight > courier.freeWeightLimit) {
+          cost += (totalWeight - courier.freeWeightLimit) * courier.extraWeightPrice
+        }
+        if (maxDimension >= courier.sizeThreshold) {
+          cost += courier.sizeSurcharge
+        }
+        shippingCost = Math.min(cost, courier.maxTotalCost)
+      } else {
+        shippingCost = truck.basePrice
+      }
+    }
+  }
+
+  const expectedTotal = calculatedTotal + shippingCost
+
+  // Allow 5% variance for rounding differences
+  const tolerance = expectedTotal * 0.05
+  const difference = Math.abs(expectedTotal - (payload.totalAmount || 0))
+
+  if (difference > tolerance) {
+    console.warn(
+      `⚠️ SHIPPING BUG DETECTED: Expected €${expectedTotal.toFixed(2)}, Got €${(payload.totalAmount || 0).toFixed(2)}`
+    )
+    throw new AppError(
+      `Order total mismatch. Expected €${expectedTotal.toFixed(2)}, received €${(payload.totalAmount || 0).toFixed(2)}. This may indicate a double-shipping error.`,
+      StatusCodes.BAD_REQUEST,
+    )
+  }
+
+  return true
+}
 
 const createNewOrder = async (payload: IOrder, email: string) => {
   const user = await User.isUserExistByEmail(email)
   if (!user) {
     throw new AppError('User not found', StatusCodes.NOT_FOUND)
   }
+
+  // SECURITY: Validate order total to prevent double-shipping fraud
+  await validateOrderTotal(payload, email)
 
   if (payload.type === 'product') {
     if (!payload.product?.productId) {

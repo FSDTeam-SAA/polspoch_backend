@@ -53,6 +53,9 @@ const cartModel = new Schema<ICart>(
       totalWeight: { type: Number },
       productPrice: { type: Number },
       pricePerUnit: { type: Number },
+      // NOTE: shippingPrice is stored here FOR DISPLAY ONLY
+      // Actual shipping is calculated ONCE during checkout, not per-item
+      // See: POST /api/cart/checkout for proper shipping calculation
       shippingPrice: { type: Number },
       shippingMethod: { type: String },
       maxDimensionDetected: { type: Number },

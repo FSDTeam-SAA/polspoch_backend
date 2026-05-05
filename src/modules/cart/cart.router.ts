@@ -20,6 +20,13 @@ router.post(
   cartController.mergeCart
 );
 
+// NEW ENDPOINT: Checkout calculation with proper shipping ONCE
+router.post(
+  "/checkout",
+  auth(),
+  cartController.checkoutCart
+);
+
 router.delete(
   "/delete-cart/:cartId",
   auth(),

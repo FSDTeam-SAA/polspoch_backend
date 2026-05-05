@@ -97,6 +97,7 @@ export const calculateRebarQuote = async (
     }
 
     // 5. RESPONSE
+    // NOTE: finalQuote is PRODUCT ONLY. Shipping calculated ONCE at checkout.
     res.status(200).json({
       success: true,
       summary: {
@@ -114,8 +115,10 @@ export const calculateRebarQuote = async (
         productPrice: Number(totalProductPrice.toFixed(2)),
         // totalPriceOfProduct:totalProductPrice,
         pricePerUnit,
+        // IMPORTANT: shippingPrice is FOR DISPLAY ONLY
         shippingPrice: Number(shippingCost.toFixed(2)),
-        finalQuote: Number((totalProductPrice + shippingCost).toFixed(2)),
+        // finalQuote should NOT include shipping (product price only)
+        finalQuote: Number(totalProductPrice.toFixed(2)),
       },
       shippingStatus: {
         method: shippingMethod,
@@ -230,6 +233,7 @@ export const calculateBendingQuote = async (
     }
 
     // 5. RESPONSE (formatted exactly as requested)
+    // NOTE: finalQuote is PRODUCT ONLY. Shipping calculated ONCE at checkout.
     res.status(200).json({
       success: true,
       summary: {
@@ -247,8 +251,10 @@ export const calculateBendingQuote = async (
       pricing: {
         productPrice: Number(totalProductPrice.toFixed(2)),
         pricePerUnit: pricePerUnit,
+        // IMPORTANT: shippingPrice is FOR DISPLAY ONLY
         shippingPrice: Number(shippingCost.toFixed(2)),
-        finalQuote: Number((totalProductPrice + shippingCost).toFixed(2)),
+        // finalQuote should NOT include shipping (product price only)
+        finalQuote: Number(totalProductPrice.toFixed(2)),
       },
       shippingStatus: {
         method: shippingMethod,
@@ -468,6 +474,7 @@ export const calculateCuttingQuote = async (
     }
 
     // 4. FINAL RESPONSE
+    // NOTE: finalQuote is PRODUCT ONLY. Shipping calculated ONCE at checkout.
     res.status(200).json({
       success: true,
       summary: {
@@ -483,8 +490,10 @@ export const calculateCuttingQuote = async (
       pricing: {
         productPrice: Number(totalProductPrice.toFixed(2)),
         pricePerUnit: Number(pricePerUnit.toFixed(2)),
+        // IMPORTANT: shippingPrice is FOR DISPLAY ONLY
         shippingPrice: Number(shippingCost.toFixed(2)),
-        finalQuote: Number((totalProductPrice + shippingCost).toFixed(2)),
+        // finalQuote should NOT include shipping (product price only)
+        finalQuote: Number(totalProductPrice.toFixed(2)),
       },
       shippingStatus: {
         method: shippingMethod,
