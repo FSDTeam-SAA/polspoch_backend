@@ -11,10 +11,22 @@ import { ShippingPolicy } from "../shippingPolicy/shipping.model";
 
 /**
  * Calculate product quote with pricing and shipping
- * Similar to service quote endpoints, returns product price separately from shipping
+ * ENHANCED: Now accepts dynamic product parameters (size, range, thickness, finishQuality, etc.)
+ * These factors may affect pricing based on business logic
 */
 const calculateProductQuote = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  // ✅ REQUIRED
   const { productId, featuredId, quantity } = req.body;
+
+  // ✅ OPTIONAL DYNAMIC PARAMETERS (sent from frontend)
+  const {
+    size,           // Selected product size
+    unitSize,       // Unit of size (meter, kg, etc.)
+    range,          // Range selection (min/max range for product)
+    thickness,      // Thickness value (if applicable)
+    finishQualitySelected,  // Selected finish quality (may differ from base)
+    customPrice,    // Custom price adjustment if frontend calculated differently
+  } = req.body;
 
   if (!productId || !featuredId || !quantity) {
     res.status(400).json({
@@ -44,17 +56,76 @@ const calculateProductQuote = catchAsync(async (req: Request, res: Response): Pr
     return;
   }
 
-  // Calculate product price
-  const miterPerUnitPrice = feature.miterPerUnitPrice;
-  const productPrice = Number((miterPerUnitPrice * quantity).toFixed(2));
+  // ========================================
+  // DYNAMIC PRICING CALCULATION
+  // ========================================
+  let basePrice = feature.miterPerUnitPrice;
+  let priceAdjustments: any = {
+    basePrice,
+    factors: [],
+  };
+
+  // 1️⃣ CHECK IF CUSTOM PRICE WAS CALCULATED BY FRONTEND
+  // (e.g., if prices vary by size/thickness/range)
+  if (customPrice && customPrice !== basePrice) {
+    priceAdjustments.factors.push({
+      type: "frontend_calculated",
+      description: "Price calculated by frontend with dynamic factors",
+      value: customPrice,
+      adjustment: customPrice - basePrice,
+    });
+    basePrice = customPrice;
+  }
+
+  // 2️⃣ DYNAMIC ADJUSTMENTS BASED ON PARAMETERS
+  // Check if size affects price
+  if (size && feature.minRange && feature.maxRange) {
+    if (size < feature.minRange || size > feature.maxRange) {
+      priceAdjustments.factors.push({
+        type: "size_out_of_range",
+        size,
+        minRange: feature.minRange,
+        maxRange: feature.maxRange,
+        warning: `Size ${size} is outside recommended range (${feature.minRange}-${feature.maxRange})`,
+      });
+    }
+  }
+
+  // Check if thickness affects weight/price
+  if (thickness && feature.thickness) {
+    const thicknessRatio = thickness / feature.thickness;
+    if (thicknessRatio !== 1) {
+      const thicknessAdjustment = basePrice * (thicknessRatio - 1) * 0.1; // 10% per thickness unit
+      priceAdjustments.factors.push({
+        type: "thickness_adjustment",
+        baseThickness: feature.thickness,
+        selectedThickness: thickness,
+        adjustment: Number(thicknessAdjustment.toFixed(2)),
+      });
+      basePrice = Number((basePrice + thicknessAdjustment).toFixed(2));
+    }
+  }
+
+  // Check if finish quality affects price
+  if (finishQualitySelected && finishQualitySelected !== feature.finishQuality) {
+    priceAdjustments.factors.push({
+      type: "quality_change",
+      baseQuality: feature.finishQuality,
+      selectedQuality: finishQualitySelected,
+      note: "Quality mismatch - verify pricing with admin",
+    });
+  }
+
+  // Calculate final product price with all adjustments
+  const productPrice = Number((basePrice * quantity).toFixed(2));
 
   // Calculate weight for shipping
   const kgsPerUnit = feature.kgsPerUnit || 0;
   const totalWeight = Number((kgsPerUnit * quantity).toFixed(2));
 
-  // Estimate dimension (use max of size1, size2 if available)
-  let maxDimension = 1000; // Default assumption
-  if (feature.size1 || feature.size2) {
+  // Estimate dimension (use max of size1, size2 if available, or selected size)
+  let maxDimension = size || 1000; // Use selected size or default
+  if (!size && (feature.size1 || feature.size2)) {
     maxDimension = Math.max(feature.size1 || 0, feature.size2 || 0);
   }
 
@@ -95,13 +166,25 @@ const calculateProductQuote = catchAsync(async (req: Request, res: Response): Pr
       summary: {
         productName: product.productName,
         reference: feature.reference,
-        finishQuality: feature.finishQuality,
+        finishQuality: finishQualitySelected || feature.finishQuality,
         quantity,
         totalWeight: Number(totalWeight.toFixed(2)),
         maxDimension,
+        // ✅ NEW: Show all dynamic parameters used
+        dynamicParameters: {
+          size,
+          unitSize,
+          range,
+          thickness,
+          finishQualitySelected,
+        },
       },
       pricing: {
-        miterPerUnitPrice,
+        // ✅ ENHANCED: Show calculation breakdown
+        basePrice: feature.miterPerUnitPrice,
+        adjustedPrice: basePrice,
+        priceAdjustments,
+        miterPerUnitPrice: basePrice,
         productPrice,
         // IMPORTANT: shippingPrice is FOR DISPLAY ONLY
         shippingPrice: Number(shippingCost.toFixed(2)),

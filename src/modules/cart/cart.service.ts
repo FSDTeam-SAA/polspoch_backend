@@ -45,14 +45,20 @@ const addToCart = async (
       product: {
         productId: product.productId,
         featuredId: product.featuredId,
+        // ✅ DYNAMIC PARAMETERS (can affect pricing)
         size: product.size,
         unitSize: product.unitSize,
         range: product.range,
-        // NEW: Store weight, dimension, and calculated price
+        thickness: product.thickness,
+        finishQualitySelected: product.finishQualitySelected,
+        customPrice: product.customPrice,
+        // Weight, dimension, and calculated price
         totalWeight: product.totalWeight,
         maxDimensionDetected: product.maxDimensionDetected,
+        basePrice: product.basePrice,
         miterPerUnitPrice: product.miterPerUnitPrice,
         calculatedPrice: product.calculatedPrice,
+        priceAdjustments: product.priceAdjustments,
         shippingPrice: product.shippingPrice, // FOR DISPLAY ONLY
         shippingMethod: product.shippingMethod,
       },

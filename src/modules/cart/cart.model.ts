@@ -6,19 +6,25 @@ const cartModel = new Schema<ICart>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
     guestId: { type: String, required: false },
 
-    // Existing product structure for standard shop items
+    // Existing product structure for standard shop items with DYNAMIC PRICING
     product: {
       productId: { type: Types.ObjectId, ref: "Product" },
       featuredId: { type: Types.ObjectId, ref: "Product" },
+      // ✅ DYNAMIC PARAMETERS (can affect pricing)
       size: { type: Number },
       unitSize: { type: Number },
       range: { type: Number },
-      // NEW: Weight and dimension info for shipping calculation
+      thickness: { type: Number },              // NEW: May affect pricing
+      finishQualitySelected: { type: String },  // NEW: Selected quality
+      customPrice: { type: Number },            // NEW: Frontend-calculated custom price
+      // Weight and dimension info for shipping calculation
       totalWeight: { type: Number },
       maxDimensionDetected: { type: Number },
-      // NEW: Store calculated product price from miterPerUnitPrice
+      // Store calculated product price from miterPerUnitPrice
+      basePrice: { type: Number },              // NEW: Original base price
       miterPerUnitPrice: { type: Number },
       calculatedPrice: { type: Number }, // miterPerUnitPrice * quantity
+      priceAdjustments: { type: Schema.Types.Mixed }, // NEW: Track all adjustments
       // NOTE: shippingPrice is stored here FOR DISPLAY ONLY
       // Actual shipping is calculated ONCE during checkout, not per-item
       shippingPrice: { type: Number },

@@ -5,19 +5,25 @@ export interface ICart extends Document {
   userId?: Types.ObjectId;
   guestId?: string;
 
-  // Existing Product Structure
+  // Existing Product Structure with Dynamic Pricing
   product?: {
     productId?: Types.ObjectId;
     featuredId?: Types.ObjectId;
+    // ✅ DYNAMIC PARAMETERS (can affect pricing)
     size?: number;
     unitSize?: number;
     range?: number;
-    // NEW: Weight and dimension tracking
+    thickness?: number;        // NEW: May affect pricing
+    finishQualitySelected?: string;  // NEW: Selected quality (may differ from base)
+    customPrice?: number;       // NEW: If frontend calculated custom price
+    // Weight and dimension tracking
     totalWeight?: number;
     maxDimensionDetected?: number;
-    // NEW: Price fields
+    // Price fields
+    basePrice?: number;         // NEW: Original base price
     miterPerUnitPrice?: number;
     calculatedPrice?: number;
+    priceAdjustments?: any;     // NEW: Track all price modifications
     // NOTE: shippingPrice is FOR DISPLAY ONLY
     shippingPrice?: number;
     shippingMethod?: string;
