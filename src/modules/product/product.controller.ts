@@ -6,8 +6,121 @@ import {
 } from "../../utils/cloudinary";
 import sendResponse from "../../utils/sendResponse";
 import { FamilyService, ProductService } from "./product.service";
+import { Product } from "./product.model";
+import { ShippingPolicy } from "../shippingPolicy/shipping.model";
+
+/**
+ * Calculate product quote with pricing and shipping
+ * Similar to service quote endpoints, returns product price separately from shipping
+*/
+const calculateProductQuote = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const { productId, featuredId, quantity } = req.body;
+
+  if (!productId || !featuredId || !quantity) {
+    res.status(400).json({
+      success: false,
+      message: "productId, featuredId, and quantity are required",
+    });
+    return;
+  }
+
+  const product = await Product.findById(productId).lean();
+  if (!product) {
+    res.status(404).json({
+      success: false,
+      message: "Product not found",
+    });
+    return;
+  }
+
+  const feature = product.features.find(
+    (f: any) => f._id?.toString() === featuredId
+  );
+  if (!feature) {
+    res.status(404).json({
+      success: false,
+      message: "Product feature not found",
+    });
+    return;
+  }
+
+  // Calculate product price
+  const miterPerUnitPrice = feature.miterPerUnitPrice;
+  const productPrice = Number((miterPerUnitPrice * quantity).toFixed(2));
+
+  // Calculate weight for shipping
+  const kgsPerUnit = feature.kgsPerUnit || 0;
+  const totalWeight = Number((kgsPerUnit * quantity).toFixed(2));
+
+  // Estimate dimension (use max of size1, size2 if available)
+  let maxDimension = 1000; // Default assumption
+  if (feature.size1 || feature.size2) {
+    maxDimension = Math.max(feature.size1 || 0, feature.size2 || 0);
+  }
+
+  // Get shipping policies
+  const [courier, truck] = await Promise.all([
+    ShippingPolicy.findOne({ methodName: "courier" }).lean(),
+    ShippingPolicy.findOne({ methodName: "truck" }).lean(),
+  ]);
+
+  // Calculate shipping
+  let shippingCost = 0;
+  let shippingMethod = "courier";
+
+  if (courier && truck) {
+    if (maxDimension <= courier.maxSizeAllowed) {
+      shippingMethod = "courier";
+      let cost = courier.basePrice;
+      if (totalWeight > courier.freeWeightLimit) {
+        cost +=
+          (totalWeight - courier.freeWeightLimit) *
+          courier.extraWeightPrice;
+      }
+      if (maxDimension >= courier.sizeThreshold) {
+        cost += courier.sizeSurcharge;
+      }
+      shippingCost = Math.min(cost, courier.maxTotalCost);
+    } else {
+      shippingMethod = "truck";
+      shippingCost = truck.basePrice;
+    }
+  }
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Product quote calculated successfully",
+    data: {
+      summary: {
+        productName: product.productName,
+        reference: feature.reference,
+        finishQuality: feature.finishQuality,
+        quantity,
+        totalWeight: Number(totalWeight.toFixed(2)),
+        maxDimension,
+      },
+      pricing: {
+        miterPerUnitPrice,
+        productPrice,
+        // IMPORTANT: shippingPrice is FOR DISPLAY ONLY
+        shippingPrice: Number(shippingCost.toFixed(2)),
+        // finalQuote = product price only (for order calculation)
+        finalQuote: productPrice,
+        // finalQuoteWithShipping = for display/UI purposes
+        finalQuoteWithShipping: Number((productPrice + shippingCost).toFixed(2)),
+      },
+      shippingStatus: {
+        method: shippingMethod,
+        isOversized: maxDimension > (courier?.maxSizeAllowed || 2500),
+        maxDimensionDetected: maxDimension,
+      },
+    },
+  });
+});
 
 export const ProductController = {
+  calculateProductQuote,
   createProduct: async (req: Request, res: Response) => {
     try {
       const files = req.files as Express.Multer.File[];

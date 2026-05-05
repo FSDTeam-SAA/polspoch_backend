@@ -34,10 +34,14 @@ const validateOrderTotal = async (payload: IOrder, email: string) => {
     // (which represents product price without shipping)
     calculatedTotal += cartItem.totalAmount || 0
 
-    // Track dimensions for shipping calculation
+    // Track dimensions for shipping calculation (both services and products)
     if (cartItem.type === 'service') {
       totalWeight += cartItem.serviceData?.totalWeight || 0
       maxDimension = Math.max(maxDimension, cartItem.serviceData?.maxDimensionDetected || 0)
+    } else if (cartItem.type === 'product') {
+      // NEW: Also track product weight and dimensions
+      totalWeight += cartItem.product?.totalWeight || 0
+      maxDimension = Math.max(maxDimension, cartItem.product?.maxDimensionDetected || 0)
     }
   }
 

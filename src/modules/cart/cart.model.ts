@@ -13,6 +13,16 @@ const cartModel = new Schema<ICart>(
       size: { type: Number },
       unitSize: { type: Number },
       range: { type: Number },
+      // NEW: Weight and dimension info for shipping calculation
+      totalWeight: { type: Number },
+      maxDimensionDetected: { type: Number },
+      // NEW: Store calculated product price from miterPerUnitPrice
+      miterPerUnitPrice: { type: Number },
+      calculatedPrice: { type: Number }, // miterPerUnitPrice * quantity
+      // NOTE: shippingPrice is stored here FOR DISPLAY ONLY
+      // Actual shipping is calculated ONCE during checkout, not per-item
+      shippingPrice: { type: Number },
+      shippingMethod: { type: String },
     },
 
     // Detailed storage for service calculations

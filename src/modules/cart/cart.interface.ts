@@ -12,6 +12,15 @@ export interface ICart extends Document {
     size?: number;
     unitSize?: number;
     range?: number;
+    // NEW: Weight and dimension tracking
+    totalWeight?: number;
+    maxDimensionDetected?: number;
+    // NEW: Price fields
+    miterPerUnitPrice?: number;
+    calculatedPrice?: number;
+    // NOTE: shippingPrice is FOR DISPLAY ONLY
+    shippingPrice?: number;
+    shippingMethod?: string;
   };
 
   // Service Calculation Structure

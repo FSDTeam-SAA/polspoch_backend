@@ -16,6 +16,9 @@ router.put(
   ProductController.multipleProductUpdate,
 );
 
+// Product quote calculation endpoint (similar to service quote endpoints)
+router.post("/quote/calculate", ProductController.calculateProductQuote);
+
 router.get("/", ProductController.getAllProducts);
 router.get("/:id", ProductController.getSingleProduct);
 

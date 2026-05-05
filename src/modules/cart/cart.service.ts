@@ -48,6 +48,13 @@ const addToCart = async (
         size: product.size,
         unitSize: product.unitSize,
         range: product.range,
+        // NEW: Store weight, dimension, and calculated price
+        totalWeight: product.totalWeight,
+        maxDimensionDetected: product.maxDimensionDetected,
+        miterPerUnitPrice: product.miterPerUnitPrice,
+        calculatedPrice: product.calculatedPrice,
+        shippingPrice: product.shippingPrice, // FOR DISPLAY ONLY
+        shippingMethod: product.shippingMethod,
       },
       quantity,
       type: "product",
@@ -271,8 +278,15 @@ const cartCheckout = async (
 
   cartItems.forEach((item: any) => {
     // Add product/service price
-    if (item.type === "product" && item.product?.productId?.price) {
-      subtotal += (item.product.productId.price || 0) * (item.quantity || 1);
+    if (item.type === "product" && item.product?.calculatedPrice) {
+      // FIXED: Use calculatedPrice instead of non-existent product.price
+      subtotal += item.product.calculatedPrice || 0;
+      
+      // Track dimensions for shipping calculation
+      if (item.product?.totalWeight) {
+        totalWeight += item.product.totalWeight || 0;
+        maxDimension = Math.max(maxDimension, item.product.maxDimensionDetected || 0);
+      }
     } else if (item.type === "service" && item.serviceData?.totalWeight) {
       // For services, add product price only (stored in totalAmount before shipping was added)
       // Now with the fix, totalAmount = product price only
