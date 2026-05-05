@@ -117,8 +117,10 @@ export const calculateRebarQuote = async (
         pricePerUnit,
         // IMPORTANT: shippingPrice is FOR DISPLAY ONLY
         shippingPrice: Number(shippingCost.toFixed(2)),
-        // finalQuote should NOT include shipping (product price only)
+        // finalQuote = product price only (for order calculation)
         finalQuote: Number(totalProductPrice.toFixed(2)),
+        // finalQuoteWithShipping = for display/UI purposes
+        finalQuoteWithShipping: Number((totalProductPrice + shippingCost).toFixed(2)),
       },
       shippingStatus: {
         method: shippingMethod,
@@ -253,8 +255,10 @@ export const calculateBendingQuote = async (
         pricePerUnit: pricePerUnit,
         // IMPORTANT: shippingPrice is FOR DISPLAY ONLY
         shippingPrice: Number(shippingCost.toFixed(2)),
-        // finalQuote should NOT include shipping (product price only)
+        // finalQuote = product price only (for order calculation)
         finalQuote: Number(totalProductPrice.toFixed(2)),
+        // finalQuoteWithShipping = for display/UI purposes
+        finalQuoteWithShipping: Number((totalProductPrice + shippingCost).toFixed(2)),
       },
       shippingStatus: {
         method: shippingMethod,
@@ -492,8 +496,10 @@ export const calculateCuttingQuote = async (
         pricePerUnit: Number(pricePerUnit.toFixed(2)),
         // IMPORTANT: shippingPrice is FOR DISPLAY ONLY
         shippingPrice: Number(shippingCost.toFixed(2)),
-        // finalQuote should NOT include shipping (product price only)
+        // finalQuote = product price only (for order calculation)
         finalQuote: Number(totalProductPrice.toFixed(2)),
+        // finalQuoteWithShipping = for display/UI purposes
+        finalQuoteWithShipping: Number((totalProductPrice + shippingCost).toFixed(2)),
       },
       shippingStatus: {
         method: shippingMethod,
