@@ -10,14 +10,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-08-27.basil',
 })
 
-const processPaymentSuccess = async (payment: any) => {
+const processPaymentSuccess = async (
+  paymentDoc: any,
+  session: Stripe.Checkout.Session,
+) => {
   const paymentIntentId =
-    typeof payment.payment_intent === 'string'
-      ? payment.payment_intent
-      : payment.payment_intent?.id
-
-  const paymentDoc = await Payment.findById(payment._id)
-  if (!paymentDoc) return
+    typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : session.payment_intent?.id
 
   paymentDoc.status = 'success'
   paymentDoc.transactionId = paymentIntentId
@@ -103,8 +103,16 @@ const checkStripePaymentStatus = async (payment: any) => {
       },
     )
 
+    console.log('Stripe session check:', {
+      paymentId: payment._id,
+      orderId: payment.orderId,
+      checkoutSessionId: payment.checkoutSessionId,
+      stripePaymentStatus: session.payment_status,
+      stripeSessionStatus: session.status,
+    })
+
     if (session.payment_status === 'paid') {
-      await processPaymentSuccess(session)
+      await processPaymentSuccess(payment, session)
     }
   } catch (err) {
     console.error(`⚠️ Failed to check payment ${payment._id}:`, err)
