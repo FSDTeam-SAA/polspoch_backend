@@ -12,6 +12,7 @@ export interface ICart extends Document {
     // ✅ DYNAMIC PARAMETERS (can affect pricing)
     size?: number;
     unitSize?: number;
+    length?: number;
     range?: number;
     thickness?: number;        // NEW: May affect pricing
     finishQualitySelected?: string;  // NEW: Selected quality (may differ from base)

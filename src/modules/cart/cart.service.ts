@@ -48,6 +48,7 @@ const addToCart = async (
         // ✅ DYNAMIC PARAMETERS (can affect pricing)
         size: product.size,
         unitSize: product.unitSize,
+        length: product.length,
         range: product.range,
         thickness: product.thickness,
         finishQualitySelected: product.finishQualitySelected,
