@@ -13,6 +13,7 @@ const cartModel = new Schema<ICart>(
       // ✅ DYNAMIC PARAMETERS (can affect pricing)
       size: { type: Number },
       unitSize: { type: Number },
+      length: { type: Number },
       range: { type: Number },
       thickness: { type: Number },              // NEW: May affect pricing
       finishQualitySelected: { type: String },  // NEW: Selected quality
