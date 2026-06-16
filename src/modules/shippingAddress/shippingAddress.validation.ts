@@ -17,7 +17,7 @@ const createShippingAddressValidation = z.object({
       .string({
         required_error: 'Phone number is required',
       })
-      .min(10, 'Phone number must be at least 10 characters'),
+      .min(9, 'Phone number must be at least 9 characters'),
     street: z
       .string({
         required_error: 'Street address is required',
@@ -43,10 +43,23 @@ const createShippingAddressValidation = z.object({
         required_error: 'Country is required',
       })
       .min(2, 'Country must be at least 2 characters'),
+    company: z.string().optional(),
     landmark: z.string().optional(),
     isDefault: z.boolean().optional(),
     addressType: z.enum(['home', 'office', 'other']).optional(),
     deliveryInstructions: z.string().optional(),
+    invoiceDetails: z.object({
+      name: z.string().optional(),
+      email: z.string().email().optional(),
+      phone: z.string().optional(),
+      company: z.string().optional(),
+      vat: z.string().optional(),
+      address: z.string().optional(),
+      city: z.string().optional(),
+      province: z.string().optional(),
+      postalCode: z.string().optional(),
+      country: z.string().optional(),
+    }).optional(),
   }),
 })
 
@@ -60,7 +73,7 @@ const updateShippingAddressValidation = z.object({
     email: z.string().email('Invalid email address').optional(),
     phone: z
       .string()
-      .min(10, 'Phone number must be at least 10 characters')
+      .min(9, 'Phone number must be at least 9 characters')
       .optional(),
     street: z
       .string()
@@ -79,10 +92,23 @@ const updateShippingAddressValidation = z.object({
       .string()
       .min(2, 'Country must be at least 2 characters')
       .optional(),
+    company: z.string().optional(),
     landmark: z.string().optional(),
     isDefault: z.boolean().optional(),
     addressType: z.enum(['home', 'office', 'other']).optional(),
     deliveryInstructions: z.string().optional(),
+    invoiceDetails: z.object({
+      name: z.string().optional(),
+      email: z.string().email().optional(),
+      phone: z.string().optional(),
+      company: z.string().optional(),
+      vat: z.string().optional(),
+      address: z.string().optional(),
+      city: z.string().optional(),
+      province: z.string().optional(),
+      postalCode: z.string().optional(),
+      country: z.string().optional(),
+    }).optional(),
   }),
 })
 

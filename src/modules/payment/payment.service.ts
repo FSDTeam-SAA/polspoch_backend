@@ -27,6 +27,15 @@ const createPayment = async (
     throw new AppError("Order not found", StatusCodes.NOT_FOUND);
   }
 
+  const expectedAmount = Number((order.totalAmount || 0).toFixed(2));
+  const requestedAmount = Number((totalAmount || 0).toFixed(2));
+  if (Math.abs(expectedAmount - requestedAmount) > 0.01) {
+    throw new AppError(
+      `Payment amount mismatch. Expected €${expectedAmount.toFixed(2)}, received €${requestedAmount.toFixed(2)}.`,
+      StatusCodes.BAD_REQUEST
+    );
+  }
+
   // 3. Create Pending Payment Record
   const paymentRecord = await Payment.create({
     userId: user._id,
